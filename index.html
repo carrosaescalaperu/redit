@@ -283,7 +283,10 @@ Object.keys(C).forEach(function(n){
   var c=C[n],b=document.createElement('button');
   b.className='item';b.type='button';b.dataset.n=n;b.dataset.tags=c.tags;
   b.innerHTML='<div class="ph">'+(c.tags.indexOf('destacada')>-1?'<span class="badge">Destacada</span>':'')+'Foto</div><div class="meta"><b>@'+n+'</b><div class="tiny sl">'+c.m.length+' modelos</div></div>';
-  b.addEventListener('click',function(){abrir(n)});
+
+  
+  b.addEventListener('click',function(){location.href='perfil.html?u='+n});
+  
   gal.appendChild(b);
 });
 function aplicar(){
