@@ -141,6 +141,21 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
 .x2{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--tx);font-size:1.3rem;line-height:1;cursor:pointer;transition:background var(--t-smooth)}
 .x2:hover{background:rgba(255,255,255,.06)}
 .dot:focus-visible,.x2:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+/* imagen a sangre completa en tarjetas */
+.item{padding:0;overflow:hidden}
+.item .ph{border-radius:0}
+.item .meta{padding:1rem 1.1rem 1.1rem}
+.card.mod{padding:0;gap:0;align-items:stretch}
+.card.mod .ph{border-radius:0;height:100%;aspect-ratio:auto;min-height:240px}
+.card.mod>div:last-child{padding:2rem}
+.card:has(.prize){padding:0}
+.prize{gap:0}
+.prize .ph{border-radius:0;height:100%;aspect-ratio:auto;min-height:220px}
+.prize>div:last-child{padding:2rem}
+@media(max-width:900px){
+  .card.mod .ph,.prize .ph{max-width:none;height:auto;aspect-ratio:4/3;min-height:0}
+}
 </style>
 </head>
 <body>
