@@ -308,17 +308,11 @@ document.querySelectorAll('.chip').forEach(function(ch){
     ch.setAttribute('aria-pressed','true');filtro=ch.dataset.f;aplicar();
   });
 });
-var dlg=document.getElementById('dlg');
-function abrir(n){
-  var c=C[n];
-  document.getElementById('av').textContent=n.charAt(0).toUpperCase();
-  document.getElementById('nick').textContent='@'+n;
-  document.getElementById('since').textContent='En la comunidad desde '+c.since;
-  document.getElementById('mods').innerHTML=c.m.map(function(x){return '<li><span>'+x[0]+'</span><span>'+x[1]+'</span></li>'}).join('');
-  dlg.showModal();
-}
-document.getElementById('close').addEventListener('click',function(){dlg.close()});
-dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+
+
+  
+
+  
 </script>
 <script>
 var M=[
