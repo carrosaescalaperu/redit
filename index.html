@@ -41,6 +41,7 @@ section{padding:3.5rem 0}
 .btn-2{display:inline-flex;align-items:center;justify-content:center;font-family:var(--fb);font-weight:600;font-size:.875rem;background:transparent;color:var(--tx);border:1px solid var(--line);border-radius:var(--r-pill);padding:.65rem 1.6rem;cursor:pointer;transition:background var(--t-smooth),border-color var(--t-smooth)}
 .btn-2:hover{background:rgba(255,255,255,.06);border-color:var(--hi)}
 .btn.sm{padding:.45rem 1.1rem;font-size:.8rem}
+#btn-sesion{gap:.45rem}
 
 /* type */
 .eyebrow{font-family:var(--fh);font-weight:600;font-style:italic;text-transform:uppercase;color:var(--red);font-size:.8125rem;letter-spacing:.08em;margin-bottom:.5rem}
@@ -290,12 +291,14 @@ document.querySelectorAll('.chip').forEach(function(ch){
   });
 });
 cargar();
-SB.auth.getSession().then(function(r){
+SB.auth.getSession().then(async function(r){
   var s=r.data.session;
   if(s&&s.user.email){
+    var p=await SB.from('perfiles').select('apodo').eq('user_id',s.user.id).maybeSingle();
+    var a=p.data?p.data.apodo:s.user.email.split('@')[0];
     var b=document.getElementById('btn-sesion');
-    b.textContent='Cerrar sesión';b.href='#';
-    b.addEventListener('click',async function(e){e.preventDefault();await SB.auth.signOut();location.reload()});
+    b.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>Mi perfil';
+    b.href='perfil.html?u='+encodeURIComponent(a);
   }
 });
 </script>
