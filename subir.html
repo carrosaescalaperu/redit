@@ -19,25 +19,27 @@
   <div class="wrap">
     <div class="eyebrow">Comunidad</div>
     <h1 class="h2">Sube tu foto</h1>
-    <p class="sub">Solo coches comprados con nosotros. Revisamos cada foto antes de publicarla.</p>
+    <p class="sub">Tu cuenta es tu colección. Solo coches comprados con nosotros; revisamos cada foto antes de publicarla.</p>
 
     <!-- 1. correo -->
-    <section id="s-login" class="card" hidden><p class="tiny" id="m-login" style="margin:0">Preparando…</p></section>
-
-    <!-- 2. apodo -->
-    <section id="s-apodo" class="card" hidden>
-      <form id="f-apodo" class="stack">
-        <label class="lbl" for="apodo">Elige tu apodo (3–20 letras, números o _)</label>
-        <input id="apodo" type="text" required maxlength="20" autocomplete="off" placeholder="mi_apodo">
-        <div><button class="btn" type="submit">Guardar apodo</button></div>
-        <p class="tiny" id="m-apodo" style="margin:0"></p>
+    <section id="s-login" class="card" hidden>
+      <form id="f-login" class="stack">
+        <label class="lbl" for="apodo">Apodo</label>
+        <input id="apodo" type="text" required maxlength="20" autocomplete="username" placeholder="mi_apodo">
+        <label class="lbl" for="pass">Contraseña</label>
+        <input id="pass" type="password" required minlength="6" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="btn" type="submit">Entrar</button>
+          <button class="btn-2" type="button" id="b-crear">Crear cuenta</button>
+        </div>
+        <p class="tiny" id="m-login" style="margin:0">Primera vez: elige apodo y contraseña y pulsa Crear cuenta. Guárdalas: no hay recuperación por correo.</p>
       </form>
     </section>
 
     <!-- 3. código + foto -->
     <section id="s-subir" hidden>
       <div class="card stack">
-        <div class="tiny">Coleccionista: @<span id="quien"></span></div>
+        <div class="tiny">Coleccionista: @<span id="quien"></span> · <a id="perfil" href="#" style="text-decoration:underline">Mi perfil</a> · <a href="#" class="out" style="text-decoration:underline">Salir</a></div>
         <label class="lbl" for="codigo">Código de tu pieza (viene con tu compra)</label>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap">
           <input id="codigo" type="text" autocomplete="off" placeholder="CEP-XXXX-XXXX" style="flex:1 1 220px;width:auto">
@@ -67,33 +69,42 @@
 <script>
 var $=function(i){return document.getElementById(i)};
 var uid=null,codigo=null;
-function ver(id){['s-login','s-apodo','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
+function ver(id){['s-login','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
 function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
 
+var DOM='@carrosescala.pe';
 async function init(){
   var s=(await SB.auth.getSession()).data.session;
-  if(!s){
-    ver('s-login');
-    var a=await SB.auth.signInAnonymously();
-    if(a.error){console.error(a.error);msg('m-login','Error: '+a.error.message,true);return}
-    
-    s=a.data.session;
-  }
+  if(s&&!s.user.email){await SB.auth.signOut();s=null}
+  if(!s){ver('s-login');return}
   uid=s.user.id;
+  var a=s.user.email.split('@')[0];
   var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
-  if(!p.data){ver('s-apodo');return}
-  $('quien').textContent=p.data.apodo;
+  if(p.data){a=p.data.apodo}
+  else{
+    var ins=await SB.from('perfiles').insert({user_id:uid,apodo:a});
+    if(ins.error){ver('s-login');msg('m-login','No se pudo crear tu perfil.',true);return}
+  }
+  $('quien').textContent=a;
+  $('perfil').href='perfil.html?u='+encodeURIComponent(a);
   ver('s-subir');misFotos();
 }
-
-$('f-apodo').addEventListener('submit',async function(e){
-  e.preventDefault();
-  var a=$('apodo').value.trim().toLowerCase();
-  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('m-apodo','Apodo inválido.',true);return}
-  var r=await SB.from('perfiles').insert({user_id:uid,apodo:a});
-  if(r.error){msg('m-apodo',r.error.code==='23505'?'Ese apodo ya existe. Elige otro.':'No se pudo guardar.',true);return}
+async function entrar(crear){
+  var a=$('apodo').value.trim().toLowerCase(),pw=$('pass').value;
+  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('m-login','Apodo inválido: 3–20 letras, números o _.',true);return}
+  if(pw.length<6){msg('m-login','La contraseña necesita 6 caracteres o más.',true);return}
+  msg('m-login','Un momento…');
+  var cred={email:a+DOM,password:pw};
+  var r=crear?await SB.auth.signUp(cred):await SB.auth.signInWithPassword(cred);
+  if(r.error){
+    var t=crear?(/registered|already/i.test(r.error.message)?'Ese apodo ya existe. Elige otro o pulsa Entrar.':'Error: '+r.error.message):'Apodo o contraseña incorrectos.';
+    msg('m-login',t,true);return;
+  }
+  if(crear&&!r.data.session){msg('m-login','Falta desactivar "Confirm email" en Supabase.',true);return}
   init();
-});
+}
+$('f-login').addEventListener('submit',function(e){e.preventDefault();entrar(false)});
+$('b-crear').addEventListener('click',function(){entrar(true)});
 
 $('codigo').addEventListener('input',function(){codigo=null;$('paso-foto').hidden=true;msg('m-codigo','')});
 $('b-codigo').addEventListener('click',async function(){
@@ -157,6 +168,9 @@ async function misFotos(){
   }).join(''):'<li><span>Aún sin fotos</span><span></span></li>';
 }
 
+document.querySelector('.out').addEventListener('click',async function(e){
+  e.preventDefault();await SB.auth.signOut();init();
+});
 init();
 </script>
 </body>
