@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Comunidad de coleccionistas · Carros Escala Perú</title>
@@ -267,6 +268,11 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
   </div>
 </dialog>
 <script>
+
+const supabaseUrl = https://uktfnntgmjhhpaonsvch.supabase.co/rest/v1/
+const supabaseKey = sb_publishable_tkWMAQPVrl7nBWDgGiMX9g_zjKlcy2H
+const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+  
 var C={
  rakuda_jdm:{since:'octubre 2026',tags:'destacada reciente',m:[['Nissan Skyline R34','1:18 · Solido'],['Toyota Supra MK4','1:18 · Solido'],['Mazda RX-7 FD','1:18 · Solido']]},
  f1_lima:{since:'octubre 2026',tags:'f1 reciente',m:[['Ferrari SF-25','1:18 · F1'],['McLaren MCL39','1:18 · F1'],['Red Bull RB21','1:18 · F1']]},
