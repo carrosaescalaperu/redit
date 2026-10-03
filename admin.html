@@ -59,7 +59,9 @@ async function init(){
 $('f-login').addEventListener('submit',async function(e){
   e.preventDefault();
   var r=await SB.auth.signInWithOtp({email:$('email').value.trim(),options:{emailRedirectTo:location.href.split('#')[0].split('?')[0]}});
-  var m=$('m-login');m.textContent=r.error?'No se pudo enviar.':'Listo. Revisa tu correo.';
+  var m=$('m-login');m.textContent=r.error?'Error: '+r.error.message:'Listo. Revisa tu correo.';
+  
+
 });
 
 function tarjeta(f,ap,pend){
