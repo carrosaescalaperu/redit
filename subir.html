@@ -22,8 +22,10 @@
     <p class="sub">Solo coches comprados con nosotros. Revisamos cada foto antes de publicarla.</p>
 
     <!-- 1. correo -->
-    <section id="s-login" class="card" hidden>
-      <form id="f-login" class="stack">
+    <section id="s-login" class="card" hidden><p class="tiny" id="m-login" style="margin:0">Preparando…</p></section>
+    
+    
+    <form id="f-login" class="stack">
         <label class="lbl" for="email">Tu correo</label>
         <input id="email" type="email" required autocomplete="email" placeholder="correo@ejemplo.com">
         <div><button class="btn" type="submit">Enviar enlace de acceso</button></div>
@@ -44,7 +46,9 @@
     <!-- 3. código + foto -->
     <section id="s-subir" hidden>
       <div class="card stack">
-        <div class="tiny">Sesión: <span id="quien"></span> · <a href="#" class="out" style="text-decoration:underline">Salir</a></div>
+
+        <div class="tiny">Coleccionista: @<span id="quien"></span></div>
+        
         <label class="lbl" for="codigo">Código de tu pieza (viene con tu compra)</label>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap">
           <input id="codigo" type="text" autocomplete="off" placeholder="CEP-XXXX-XXXX" style="flex:1 1 220px;width:auto">
@@ -76,13 +80,28 @@ var uid=null,codigo=null;
 function ver(id){['s-login','s-apodo','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
 function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
 
+
+
+
+
+  
 async function init(){
   var s=(await SB.auth.getSession()).data.session;
-  if(!s){ver('s-login');return}
-  uid=s.user.id;$('quien').textContent=s.user.email;
+  if(!s){
+    ver('s-login');
+    var a=await SB.auth.signInAnonymously();
+    if(a.error){msg('m-login','No se pudo iniciar. Recarga la página.',true);return}
+    s=a.data.session;
+  }
+  uid=s.user.id;
   var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
   if(!p.data){ver('s-apodo');return}
+  $('quien').textContent=p.data.apodo;
   ver('s-subir');misFotos();
+}
+
+
+  
 }
 
 $('f-login').addEventListener('submit',async function(e){
@@ -159,9 +178,8 @@ async function misFotos(){
   }).join(''):'<li><span>Aún sin fotos</span><span></span></li>';
 }
 
-document.querySelector('.out').addEventListener('click',async function(e){
-  e.preventDefault();await SB.auth.signOut();init();
-});
+  
+  
 init();
 </script>
 </body>
