@@ -40,16 +40,17 @@ main{padding:2.5rem 0 4rem}
 .av{width:72px;height:72px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.6rem;margin-bottom:1rem}
 .nick{font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.4rem;word-break:break-word}
 .num{font-family:var(--fh);font-weight:700;font-style:italic;font-size:2.25rem;line-height:1;margin-top:1.25rem}
-.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.25rem}
-.pic{overflow:hidden;transition:transform var(--t-smooth),border-color var(--t-smooth);display:block}
+.gal{display:grid;grid-template-columns:1fr;gap:1.25rem}
+.pic{overflow:hidden;transition:transform var(--t-smooth),border-color var(--t-smooth);display:grid;grid-template-columns:minmax(220px,340px) 1fr}
 .pic:hover{transform:translateY(-4px);border-color:var(--hi)}
 .ph{background:repeating-linear-gradient(45deg,#1c1c1f 0 12px,#1a1a1d 12px 24px);width:100%;aspect-ratio:1/1;position:relative;overflow:hidden}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.cap{padding:1rem 1.1rem 1.1rem}
-.cap b{display:block;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1rem;line-height:1.2}
+.cap{padding:1.75rem 2rem;align-self:center}
+.desc{color:var(--tx2);font-size:.9375rem;line-height:1.65;margin:.9rem 0 0;max-width:62ch}
+.cap b{display:block;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1.35rem;line-height:1.15;margin-bottom:.25rem}
 .msg{color:var(--tx2);padding:3rem 0}
 footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);font-size:.875rem}
-@media(max-width:900px){.prof{grid-template-columns:1fr}.side{position:static}.gal{grid-template-columns:repeat(2,1fr);gap:.75rem}}
+@media(max-width:900px){.prof{grid-template-columns:1fr}.side{position:static}.pic{grid-template-columns:1fr}.cap{padding:1.25rem 1.25rem 1.4rem}.cap b{font-size:1.15rem}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -99,7 +100,7 @@ async function init(){
     var p=await SB.from('perfiles').select('user_id,apodo').eq('apodo',n).maybeSingle();
     if(p.error)throw p.error;
     if(!p.data){throw 'sin-perfil'}
-    var f=await SB.from('fotos').select('modelo,marca,escala,ruta,creada').eq('user_id',p.data.user_id).eq('estado','aprobada').order('creada',{ascending:false});
+    var f=await SB.from('fotos').select('modelo,marca,escala,descripcion,ruta,creada').eq('user_id',p.data.user_id).eq('estado','aprobada').order('creada',{ascending:false});
     if(f.error)throw f.error;
     var d=f.data||[];
 
@@ -115,7 +116,7 @@ async function init(){
       var url=FOTO_URL(x.ruta);
       return '<a class="card pic" href="'+esc(url)+'" target="_blank" rel="noopener">'+
         '<div class="ph"><img src="'+esc(url)+'" alt="'+esc(x.modelo)+'" loading="lazy"></div>'+
-        '<div class="cap"><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div></div></a>';
+        '<div class="cap"><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+'</div></a>';
     }).join('');
     $('vacio').hidden=d.length>0;
     $('carga').hidden=true;$('perfil').hidden=false;
