@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Comunidad de coleccionistas · Carros Escala Perú</title>
@@ -124,12 +123,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 .search input{background:transparent;border:0;outline:0;color:var(--tx);font:500 .8125rem var(--fb);padding:.5rem 0;width:100%}
 .search input::placeholder{color:var(--tx2)}
 .match{color:#fff;font-weight:500}
-dialog{background:var(--card);color:var(--tx);border:1px solid var(--hi);border-radius:var(--r-md);padding:0;width:min(760px,calc(100% - 2rem));max-height:calc(100% - 3rem);overflow:auto}
-dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
-.dlg{padding:2rem;display:grid;grid-template-columns:220px 1fr;gap:2rem}
-.x{position:absolute;top:.9rem;right:.9rem;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--tx);font-size:1.1rem;cursor:pointer}
-.x:hover{background:rgba(255,255,255,.06)}
-@media(max-width:900px){.dlg{grid-template-columns:1fr;padding:1.5rem}}
 
 .car{position:relative}
 .track{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;position:relative;-webkit-overflow-scrolling:touch}
@@ -144,8 +137,11 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
 .dot:focus-visible,.x2:focus-visible{outline:2px solid #fff;outline-offset:3px}
 
 /* imagen a sangre completa en tarjetas */
+.ph{position:relative;overflow:hidden}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .item{padding:0;overflow:hidden}
 .item .ph{border-radius:0}
+.item .badge{z-index:1}
 .item .meta{padding:1rem 1.1rem 1.1rem}
 .card.mod{padding:0;gap:0;align-items:stretch}
 .card.mod .ph{border-radius:0;height:100%;aspect-ratio:auto;min-height:240px}
@@ -160,11 +156,10 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
 </style>
 </head>
 <body>
-
 <nav class="nav" aria-label="Principal">
   <a class="logo" href="#inicio">Carros Escala <span>Perú</span></a>
   <div class="menu"><a href="#galeria">Galería</a><a href="#concurso">Concurso</a><a href="#reglas">Cómo participar</a></div>
-  <a class="btn sm" href="#reglas">Ingresar</a>
+  <a class="btn sm" href="subir.html">Ingresar</a>
 </nav>
 
 <header class="hero" id="inicio">
@@ -173,8 +168,8 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
     <h1 class="hero-title">Las colecciones<br>de quienes sí saben</h1>
     <p class="lead">Mira las colecciones reales de nuestros clientes, sube la tuya y entra al concurso del mes.</p>
     <div class="stats">
-      <div><div class="num">48</div><div class="tiny">coleccionistas</div></div>
-      <div><div class="num">132</div><div class="tiny">fotos publicadas</div></div>
+      <div><div class="num" id="n-col">0</div><div class="tiny">coleccionistas</div></div>
+      <div><div class="num" id="n-fot">0</div><div class="tiny">fotos publicadas</div></div>
     </div>
   </div>
 </header>
@@ -190,7 +185,7 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
           <p class="sub" style="margin-bottom:1rem">Sube una foto de tu colección. Elegimos la mejor presentación: orden, fondo y creatividad. Solo participan modelos comprados con nosotros.</p>
           <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
             <div><div class="days">12 días</div><div class="tiny">para cerrar</div></div>
-            <button class="btn" type="button">Participar</button>
+            <a class="btn" href="subir.html">Participar</a>
           </div>
         </div>
       </div>
@@ -252,49 +247,42 @@ dialog::backdrop{background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
 </footer>
 
 
-<dialog id="dlg" aria-label="Perfil del coleccionista">
-  <button class="x" type="button" id="close" aria-label="Cerrar">×</button>
-  <div class="dlg">
-    <div>
-      <div class="av" id="av"></div>
-      <div id="nick" style="font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.3rem"></div>
-      <div class="tiny" id="since" style="margin:.25rem 0 1.25rem"></div>
-      <button class="btn-2" type="button">Compartir perfil</button>
-    </div>
-    <div>
-      <div class="thumbs"><div class="ph"></div><div class="ph"></div><div class="ph"></div></div>
-      <ul class="list" id="mods"></ul>
-    </div>
-  </div>
-</dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
 <script>
-
-const supabaseUrl = https://uktfnntgmjhhpaonsvch.supabase.co/rest/v1/
-const supabaseKey = sb_publishable_tkWMAQPVrl7nBWDgGiMX9g_zjKlcy2H
-const supabase = supabase.createClient(supabaseUrl, supabaseKey)
-  
-var C={
- rakuda_jdm:{since:'octubre 2026',tags:'destacada reciente',m:[['Nissan Skyline R34','1:18 · Solido'],['Toyota Supra MK4','1:18 · Solido'],['Mazda RX-7 FD','1:18 · Solido']]},
- f1_lima:{since:'octubre 2026',tags:'f1 reciente',m:[['Ferrari SF-25','1:18 · F1'],['McLaren MCL39','1:18 · F1'],['Red Bull RB21','1:18 · F1']]},
- garaje_lima:{since:'septiembre 2026',tags:'',m:[['Toyota Supra MK4','1:18 · Solido'],['Nissan Silvia S15','1:18 · Solido'],['Honda NSX','1:18 · Solido']]},
- turbo_pe:{since:'octubre 2026',tags:'reciente',m:[['Toyota Celica GT-Four','1:18 · Solido'],['Subaru Impreza 22B','1:18 · Solido']]},
- pitlane_pe:{since:'septiembre 2026',tags:'f1 destacada',m:[['Mercedes W15','1:18 · F1'],['Aston Martin AMR26','1:18 · F1']]},
- escala118:{since:'agosto 2026',tags:'destacada',m:[['Toyota Land Cruiser','1:18 · Solido'],['BMW M3 E36','1:18 · Solido'],['Ford Mustang','1:18 · Solido']]},
- kaizen_cars:{since:'octubre 2026',tags:'reciente',m:[['Nissan Skyline R34','1:18 · Solido'],['Toyota AE86','1:18 · Solido']]},
- pole_position:{since:'septiembre 2026',tags:'f1',m:[['Ferrari SF-25','1:18 · F1'],['Mercedes W16','1:18 · F1']]}
-};
-var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas';
+var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',C={};
 function norm(t){return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
-Object.keys(C).forEach(function(n){
-  var c=C[n],b=document.createElement('button');
-  b.className='item';b.type='button';b.dataset.n=n;b.dataset.tags=c.tags;
-  b.innerHTML='<div class="ph">'+(c.tags.indexOf('destacada')>-1?'<span class="badge">Destacada</span>':'')+'Foto</div><div class="meta"><b>@'+n+'</b><div class="tiny sl">'+c.m.length+' modelos</div></div>';
-
-  
-  b.addEventListener('click',function(){location.href='perfil.html?u='+n});
-  
-  gal.appendChild(b);
-});
+async function cargar(){
+  var f=await SB.from('fotos').select('user_id,modelo,marca,escala,ruta,creada,destacada').eq('estado','aprobada').order('creada',{ascending:false});
+  var d=f.data||[],ids=[];
+  d.forEach(function(x){if(ids.indexOf(x.user_id)<0)ids.push(x.user_id)});
+  var p=ids.length?await SB.from('perfiles').select('user_id,apodo').in('user_id',ids):{data:[]};
+  var ap={};(p.data||[]).forEach(function(x){ap[x.user_id]=x.apodo});
+  C={};
+  d.forEach(function(x){
+    var n=ap[x.user_id];if(!n)return;
+    var c=C[n]=C[n]||{cover:x.ruta,destacada:false,reciente:false,f1:false,m:[]};
+    c.m.push([x.modelo,[x.marca,x.escala].filter(Boolean).join(' · ')]);
+    if(x.destacada)c.destacada=true;
+    if(x.marca==='F1')c.f1=true;
+    if(Date.now()-new Date(x.creada)<30*864e5)c.reciente=true;
+  });
+  document.getElementById('n-col').textContent=Object.keys(C).length;
+  document.getElementById('n-fot').textContent=d.length;
+  pintar();
+}
+function pintar(){
+  gal.innerHTML='';
+  Object.keys(C).forEach(function(n){
+    var c=C[n],b=document.createElement('button');
+    b.className='item';b.type='button';b.dataset.n=n;
+    b.dataset.tags=[c.destacada?'destacada':'',c.reciente?'reciente':'',c.f1?'f1':''].join(' ');
+    b.innerHTML='<div class="ph"><img src="'+esc(FOTO_URL(c.cover))+'" alt="Colección de @'+esc(n)+'" loading="lazy">'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</div><div class="meta"><b>@'+esc(n)+'</b><div class="tiny sl">'+c.m.length+' modelos</div></div>';
+    b.addEventListener('click',function(){location.href='perfil.html?u='+encodeURIComponent(n)});
+    gal.appendChild(b);
+  });
+  aplicar();
+}
 function aplicar(){
   var t=norm(q.value.trim()),vis=0;
   gal.querySelectorAll('.item').forEach(function(i){
@@ -303,7 +291,7 @@ function aplicar(){
     var okQ=!t||hits.length>0;
     i.style.display=(okF&&okQ)?'':'none';
     if(okF&&okQ)vis++;
-    i.querySelector('.sl').innerHTML=t?'<span class="match">'+hits.map(function(x){return x[0]}).join(', ')+'</span>':c.m.length+' modelos';
+    i.querySelector('.sl').innerHTML=t?'<span class="match">'+hits.map(function(x){return esc(x[0])}).join(', ')+'</span>':c.m.length+' modelos';
   });
   empty.hidden=vis>0;
 }
@@ -314,11 +302,7 @@ document.querySelectorAll('.chip').forEach(function(ch){
     ch.setAttribute('aria-pressed','true');filtro=ch.dataset.f;aplicar();
   });
 });
-
-
-  
-
-  
+cargar();
 </script>
 <script>
 var M=[
