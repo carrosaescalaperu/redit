@@ -75,7 +75,8 @@ async function init(){
   if(!s){
     ver('s-login');
     var a=await SB.auth.signInAnonymously();
-    if(a.error){msg('m-login','No se pudo iniciar. Recarga la página.',true);return}
+    if(a.error){console.error(a.error);msg('m-login','Error: '+a.error.message,true);return}
+    
     s=a.data.session;
   }
   uid=s.user.id;
