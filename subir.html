@@ -145,8 +145,10 @@ $('b-subir').addEventListener('click',async function(){
     msg('m-subir','Foto enviada. Queda en revisión.');
     $('codigo').value='';codigo=null;$('foto').value='';$('prev').hidden=true;$('paso-foto').hidden=true;
     misFotos();
-  }catch(err){msg('m-subir','No se pudo enviar. Revisa tu código e intenta de nuevo.',true)}
-  b.disabled=false;
+
+  }catch(err){console.error(err);msg('m-subir','Error: '+(err.message||err),true)}
+    
+    b.disabled=false;
 });
 
 async function misFotos(){
