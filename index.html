@@ -178,7 +178,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
   <div class="wrap">
     <div class="card">
       <div class="prize">
-        <div class="ph sq">Premio</div>
+        <div class="ph sq"><img src="premio.jpg" alt="Premio del concurso del mes"></div>
         <div>
           <span class="badge">Concurso del mes</span>
           <h2 class="h2" style="margin-top:.9rem">Gana un coche a escala</h2>
@@ -210,21 +210,6 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
   </div>
 </section>
 
-<section id="modelo">
-  <div class="wrap">
-    <div class="bar"></div>
-    <h2 class="h2">Ficha de modelo</h2>
-    <p class="sub">Los modelos cambian solos cada 10 segundos. También puedes deslizar o usar los puntos.</p>
-    <div class="car" id="car" aria-roledescription="carrusel" aria-label="Fichas de modelos">
-      <div class="track" id="track"></div>
-      <div class="ctrl">
-        <button class="x2" type="button" id="prev" aria-label="Modelo anterior">‹</button>
-        <div class="dots" id="dots"></div>
-        <button class="x2" type="button" id="next" aria-label="Modelo siguiente">›</button>
-      </div>
-    </div>
-  </div>
-</section>
 
 <section id="reglas">
   <div class="wrap">
@@ -232,7 +217,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
     <h2 class="h2">Cómo participar</h2>
     <p class="sub">Tres pasos. Solo clientes con compra verificada.</p>
     <div class="steps">
-<h3>Crea tu cuenta</h3><p>Elige apodo y contraseña. Con el código de tu compra subes cada pieza.</p>      
+      <div class="card"><div class="badge">Paso 1</div><h3>Ingresa con tu correo</h3><p>Recibes un enlace de acceso, sin contraseña. Elige tu apodo.</p></div>
       <div class="card"><div class="badge">Paso 2</div><h3>Sube tu foto</h3><p>Solo coches comprados con nosotros. Sin personas ni datos visibles.</p></div>
       <div class="card"><div class="badge">Paso 3</div><h3>Revisamos y publicamos</h3><p>Aprobamos cada foto antes de mostrarla. Puedes pedir que la retiremos cuando quieras.</p></div>
     </div>
@@ -303,36 +288,6 @@ document.querySelectorAll('.chip').forEach(function(ch){
   });
 });
 cargar();
-</script>
-<script>
-var M=[
- {n:'Nissan Skyline R34',sp:'Solido · Escala 1:18 · Die-cast',h:'El GT-R de 1999 a 2002, con motor RB26DETT de seis cilindros y doble turbo. Se volvió leyenda en los circuitos y en la cultura JDM.',o:['rakuda_jdm','kaizen_cars']},
- {n:'Ferrari SF-25',sp:'F1 · Escala 1:18 · Die-cast',h:'El monoplaza de Ferrari para la temporada 2025 de Fórmula 1, con Charles Leclerc y Lewis Hamilton al volante.',o:['f1_lima','pole_position']},
- {n:'Toyota Supra MK4',sp:'Solido · Escala 1:18 · Die-cast',h:'La Supra A80 se fabricó de 1993 a 2002. Su motor 2JZ-GTE de seis cilindros en línea es de los más respetados del tuning.',o:['rakuda_jdm','garaje_lima']},
- {n:'Mercedes W15',sp:'F1 · Escala 1:18 · Die-cast',h:'El monoplaza con el que Mercedes compitió en la temporada 2024 de Fórmula 1, la última de Hamilton con el equipo.',o:['pitlane_pe']}
-];
-var track=document.getElementById('track'),dots=document.getElementById('dots'),cur=0,timer=null;
-M.forEach(function(m,i){
-  var d=document.createElement('div');d.className='card mod';d.setAttribute('aria-label',(i+1)+' de '+M.length);
-  d.innerHTML='<div class="ph sq">Foto del modelo</div><div><h3 class="h2" style="font-size:1.6rem">'+m.n+'</h3><div class="tiny">'+m.sp+'</div><p class="sub" style="margin-top:1rem">'+m.h+'</p><div class="tiny">Lo tienen</div><div class="tags">'+m.o.map(function(o){return '<span class="tag">@'+o+'</span>'}).join('')+'</div><a class="btn" href="https://wa.me/?text='+encodeURIComponent('Hola, quiero el '+m.n+' 1:18')+'" target="_blank" rel="noopener">Lo quiero por WhatsApp</a></div>';
-  track.appendChild(d);
-  var b=document.createElement('button');b.type='button';b.className='dot';b.setAttribute('aria-label','Ver '+m.n);
-  b.addEventListener('click',function(){ir(i);reiniciar()});dots.appendChild(b);
-});
-function marcar(){[].forEach.call(dots.children,function(b,i){b.setAttribute('aria-current',i===cur?'true':'false')})}
-function ir(i){cur=(i+M.length)%M.length;track.scrollTo({left:track.children[cur].offsetLeft-track.offsetLeft,behavior:'smooth'});marcar()}
-var st;track.addEventListener('scroll',function(){clearTimeout(st);st=setTimeout(function(){
-  var best=0,d=1e9;[].forEach.call(track.children,function(c,i){var x=Math.abs(c.offsetLeft-track.offsetLeft-track.scrollLeft);if(x<d){d=x;best=i}});
-  if(best!==cur){cur=best;marcar()}
-},80)});
-document.getElementById('prev').addEventListener('click',function(){ir(cur-1);reiniciar()});
-document.getElementById('next').addEventListener('click',function(){ir(cur+1);reiniciar()});
-var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches,pausa=false;
-function reiniciar(){clearInterval(timer);if(!reduce)timer=setInterval(function(){if(!pausa&&!document.hidden)ir(cur+1)},10000)}
-var car=document.getElementById('car');
-['mouseenter','focusin','touchstart'].forEach(function(e){car.addEventListener(e,function(){pausa=true})});
-['mouseleave','focusout','touchend'].forEach(function(e){car.addEventListener(e,function(){pausa=false;reiniciar()})});
-marcar();reiniciar();
 </script>
 </body>
 </html>
