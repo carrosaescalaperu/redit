@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sube tu foto · Carros Escala Perú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+</head>
+<body>
+<nav class="nav" aria-label="Principal">
+  <a class="logo" href="index.html">Carros Escala <span>Perú</span></a>
+  <a class="back" href="index.html#galeria">← Volver a la galería</a>
+</nav>
+
+<main>
+  <div class="wrap">
+    <div class="eyebrow">Comunidad</div>
+    <h1 class="h2">Sube tu foto</h1>
+    <p class="sub">Solo coches comprados con nosotros. Revisamos cada foto antes de publicarla.</p>
+
+    <!-- 1. correo -->
+    <section id="s-login" class="card" hidden>
+      <form id="f-login" class="stack">
+        <label class="lbl" for="email">Tu correo</label>
+        <input id="email" type="email" required autocomplete="email" placeholder="correo@ejemplo.com">
+        <div><button class="btn" type="submit">Enviar enlace de acceso</button></div>
+        <p class="tiny" id="m-login" style="margin:0"></p>
+      </form>
+    </section>
+
+    <!-- 2. apodo -->
+    <section id="s-apodo" class="card" hidden>
+      <form id="f-apodo" class="stack">
+        <label class="lbl" for="apodo">Elige tu apodo (3–20 letras, números o _)</label>
+        <input id="apodo" type="text" required maxlength="20" autocomplete="off" placeholder="mi_apodo">
+        <div><button class="btn" type="submit">Guardar apodo</button></div>
+        <p class="tiny" id="m-apodo" style="margin:0"></p>
+      </form>
+    </section>
+
+    <!-- 3. código + foto -->
+    <section id="s-subir" hidden>
+      <div class="card stack">
+        <div class="tiny">Sesión: <span id="quien"></span> · <a href="#" class="out" style="text-decoration:underline">Salir</a></div>
+        <label class="lbl" for="codigo">Código de tu pieza (viene con tu compra)</label>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <input id="codigo" type="text" autocomplete="off" placeholder="CEP-XXXX-XXXX" style="flex:1 1 220px;width:auto">
+          <button class="btn-2" type="button" id="b-codigo">Verificar</button>
+        </div>
+        <p class="tiny" id="m-codigo" style="margin:0"></p>
+
+        <div id="paso-foto" class="stack" hidden>
+          <div class="model"><div class="tiny">Tu modelo</div><b id="modelo"></b><div class="tiny" id="detalle"></div></div>
+          <label class="lbl" for="foto">Tu foto</label>
+          <input id="foto" type="file" accept="image/*">
+          <img id="prev" class="prev" alt="Vista previa" hidden>
+          <div><button class="btn" type="button" id="b-subir">Enviar foto</button></div>
+          <p class="tiny" id="m-subir" style="margin:0"></p>
+        </div>
+      </div>
+
+      <div class="h3">Mis fotos</div>
+      <ul class="list" id="mis"></ul>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+var uid=null,codigo=null;
+function ver(id){['s-login','s-apodo','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
+function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
+
+async function init(){
+  var s=(await SB.auth.getSession()).data.session;
+  if(!s){ver('s-login');return}
+  uid=s.user.id;$('quien').textContent=s.user.email;
+  var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
+  if(!p.data){ver('s-apodo');return}
+  ver('s-subir');misFotos();
+}
+
+$('f-login').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var r=await SB.auth.signInWithOtp({email:$('email').value.trim(),options:{emailRedirectTo:location.href.split('#')[0].split('?')[0]}});
+  msg('m-login',r.error?'No se pudo enviar. Intenta de nuevo.':'Listo. Revisa tu correo y abre el enlace.',!!r.error);
+});
+
+$('f-apodo').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var a=$('apodo').value.trim().toLowerCase();
+  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('m-apodo','Apodo inválido.',true);return}
+  var r=await SB.from('perfiles').insert({user_id:uid,apodo:a});
+  if(r.error){msg('m-apodo',r.error.code==='23505'?'Ese apodo ya existe. Elige otro.':'No se pudo guardar.',true);return}
+  init();
+});
+
+$('codigo').addEventListener('input',function(){codigo=null;$('paso-foto').hidden=true;msg('m-codigo','')});
+$('b-codigo').addEventListener('click',async function(){
+  var c=$('codigo').value.trim();if(!c)return;
+  var r=await SB.rpc('consultar_codigo',{c:c});
+  if(r.error||!r.data||!r.data.length){codigo=null;$('paso-foto').hidden=true;msg('m-codigo','Código inválido o ya usado.',true);return}
+  var m=r.data[0];codigo=c;
+  $('modelo').textContent=m.modelo;
+  $('detalle').textContent=[m.marca,m.escala].filter(Boolean).join(' · ');
+  $('paso-foto').hidden=false;msg('m-codigo','');
+});
+
+$('foto').addEventListener('change',function(){
+  var f=this.files[0],p=$('prev');
+  if(!f){p.hidden=true;return}
+  p.src=URL.createObjectURL(f);p.hidden=false;
+});
+
+function comprimir(file){
+  return new Promise(function(ok,ko){
+    var img=new Image(),u=URL.createObjectURL(file);
+    img.onload=function(){
+      var k=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement('canvas');
+      c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(u);
+      c.toBlob(function(b){b?ok(b):ko()},'image/jpeg',.85);
+    };
+    img.onerror=ko;img.src=u;
+  });
+}
+
+$('b-subir').addEventListener('click',async function(){
+  var b=this,f=$('foto').files[0];
+  if(!codigo){msg('m-subir','Verifica tu código primero.',true);return}
+  if(!f){msg('m-subir','Elige una foto.',true);return}
+  b.disabled=true;msg('m-subir','Subiendo…');
+  try{
+    var blob=await comprimir(f),ruta=uid+'/'+crypto.randomUUID()+'.jpg';
+    var up=await SB.storage.from('fotos').upload(ruta,blob,{contentType:'image/jpeg'});
+    if(up.error)throw up.error;
+    var r=await SB.rpc('subir_foto',{c:codigo,r:ruta});
+    if(r.error){await SB.storage.from('fotos').remove([ruta]);throw r.error}
+    msg('m-subir','Foto enviada. Queda en revisión.');
+    $('codigo').value='';codigo=null;$('foto').value='';$('prev').hidden=true;$('paso-foto').hidden=true;
+    misFotos();
+  }catch(err){msg('m-subir','No se pudo enviar. Revisa tu código e intenta de nuevo.',true)}
+  b.disabled=false;
+});
+
+async function misFotos(){
+  var r=await SB.from('fotos').select('modelo,estado').eq('user_id',uid).order('creada',{ascending:false});
+  var d=r.data||[];
+  $('mis').innerHTML=d.length?d.map(function(f){
+    return '<li><span>'+esc(f.modelo)+'</span><span>'+(f.estado==='aprobada'?'Publicada':'En revisión')+'</span></li>';
+  }).join(''):'<li><span>Aún sin fotos</span><span></span></li>';
+}
+
+document.querySelector('.out').addEventListener('click',async function(e){
+  e.preventDefault();await SB.auth.signOut();init();
+});
+init();
+</script>
+</body>
+</html>

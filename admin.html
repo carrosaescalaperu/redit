@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Admin · Carros Escala Perú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+</head>
+<body>
+<nav class="nav" aria-label="Principal">
+  <a class="logo" href="index.html">Carros Escala <span>Perú</span></a>
+  <a class="back out" href="#">Salir</a>
+</nav>
+
+<main>
+  <div class="wrap wide">
+    <div class="eyebrow">Administración</div>
+    <h1 class="h2">Revisión de fotos</h1>
+
+    <section id="s-login" class="card" style="max-width:520px" hidden>
+      <form id="f-login" class="stack">
+        <label class="lbl" for="email">Correo de administrador</label>
+        <input id="email" type="email" required autocomplete="email">
+        <div><button class="btn" type="submit">Enviar enlace de acceso</button></div>
+        <p class="tiny" id="m-login" style="margin:0"></p>
+      </form>
+    </section>
+
+    <section id="s-no" hidden><p class="sub">Esta cuenta no tiene permiso de administrador.</p></section>
+
+    <section id="s-panel" hidden>
+      <div class="h3" style="margin-top:1.5rem">Pendientes <span class="tiny" id="n-pend"></span></div>
+      <div class="ag" id="pend"></div>
+      <div class="h3">Publicadas <span class="tiny" id="n-apro"></span></div>
+      <div class="ag" id="apro"></div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+var D={};
+function ver(id){['s-login','s-no','s-panel'].forEach(function(s){$(s).hidden=s!==id})}
+
+async function init(){
+  var s=(await SB.auth.getSession()).data.session;
+  if(!s){ver('s-login');return}
+  var a=await SB.rpc('es_admin');
+  if(a.data!==true){ver('s-no');return}
+  ver('s-panel');cargar();
+}
+
+$('f-login').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var r=await SB.auth.signInWithOtp({email:$('email').value.trim(),options:{emailRedirectTo:location.href.split('#')[0].split('?')[0]}});
+  var m=$('m-login');m.textContent=r.error?'No se pudo enviar.':'Listo. Revisa tu correo.';
+});
+
+function tarjeta(f,ap,pend){
+  D[f.id]=f;
+  var sub=[f.marca,f.escala].filter(Boolean).join(' · ');
+  var acts=pend
+    ?'<button class="btn sm" data-a="ok" data-id="'+f.id+'">Aprobar</button><button class="btn-2 sm" data-a="del" data-id="'+f.id+'">Rechazar</button>'
+    :'<button class="btn-2 sm" data-a="dest" data-id="'+f.id+'">'+(f.destacada?'Quitar destacada':'Destacar')+'</button><button class="btn-2 sm" data-a="del" data-id="'+f.id+'">Eliminar</button>';
+  return '<div class="card it"><div class="ph"><img src="'+esc(FOTO_URL(f.ruta))+'" alt="'+esc(f.modelo)+'" loading="lazy"></div>'+
+    '<div class="b"><b>'+esc(f.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+
+    '<div class="tiny">@'+esc(ap[f.user_id]||'sin apodo')+' · '+esc(f.codigo)+'</div>'+
+    '<div class="acts">'+acts+'</div></div></div>';
+}
+
+async function cargar(){
+  D={};
+  var f=(await SB.from('fotos').select('*').order('creada',{ascending:false})).data||[];
+  var ids=[];f.forEach(function(x){if(ids.indexOf(x.user_id)<0)ids.push(x.user_id)});
+  var ap={};
+  if(ids.length){((await SB.from('perfiles').select('user_id,apodo').in('user_id',ids)).data||[]).forEach(function(p){ap[p.user_id]=p.apodo})}
+  var p=f.filter(function(x){return x.estado==='pendiente'}),a=f.filter(function(x){return x.estado==='aprobada'});
+  $('pend').innerHTML=p.length?p.map(function(x){return tarjeta(x,ap,true)}).join(''):'<p class="tiny">Sin fotos pendientes.</p>';
+  $('apro').innerHTML=a.length?a.map(function(x){return tarjeta(x,ap,false)}).join(''):'<p class="tiny">Aún no hay fotos publicadas.</p>';
+  $('n-pend').textContent='('+p.length+')';$('n-apro').textContent='('+a.length+')';
+}
+
+document.addEventListener('click',async function(e){
+  var b=e.target.closest('[data-a]');if(!b)return;
+  var f=D[b.dataset.id];if(!f)return;
+  b.disabled=true;
+  if(b.dataset.a==='ok'){await SB.from('fotos').update({estado:'aprobada'}).eq('id',f.id)}
+  else if(b.dataset.a==='dest'){await SB.from('fotos').update({destacada:!f.destacada}).eq('id',f.id)}
+  else if(b.dataset.a==='del'){
+    if(!confirm('¿Eliminar esta foto? El código quedará libre para volver a usarse.')){b.disabled=false;return}
+    await SB.from('fotos').delete().eq('id',f.id);
+    await SB.storage.from('fotos').remove([f.ruta]);
+  }
+  cargar();
+});
+
+document.querySelectorAll('.out').forEach(function(el){
+  el.addEventListener('click',async function(e){e.preventDefault();await SB.auth.signOut();init()});
+});
+init();
+</script>
+</body>
+</html>
