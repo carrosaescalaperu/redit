@@ -95,6 +95,7 @@ section{padding:3.5rem 0}
 .like:hover{background:rgba(255,255,255,.06);border-color:var(--hi);color:var(--tx)}
 .like.on{color:var(--red);border-color:rgba(225,6,0,.5)}
 .like.on svg{fill:var(--red)}
+.more{display:flex;justify-content:center;margin-top:1.75rem}
 .sk{pointer-events:none}
 .sk .ph{animation:pulso 1.2s ease-in-out infinite}
 .sk .l{height:12px;border-radius:6px;background:var(--line);margin:.45rem 0;width:75%}
@@ -199,6 +200,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
       <button class="chip" data-f="f1" aria-pressed="false">F1</button>
     </div>
     <div class="gal" id="gal"></div>
+    <div class="more"><button class="btn-2" type="button" id="mas" hidden>Ver más</button></div>
     <p class="sub" id="empty" hidden style="margin-top:1rem">No encontramos ese modelo. Prueba con otra marca o nombre.</p>
   </div>
 </section>
@@ -215,9 +217,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
           <h2 class="h2" style="margin-top:.9rem">Gana un coche a escala</h2>
           <p class="sub" style="margin-bottom:1rem">Sube una foto de tu compra y entras al sorteo de un auto a escala, ¡totalmente gratis! Mientras más compras tengas, más posibilidades de ganar.</p>
           <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
-            <div><div class="days">12 días</div><div class="tiny">para cerrar</div></div>
+            <div><div class="days" data-cuenta role="timer" style="font-variant-numeric:tabular-nums">—</div><div class="tiny" data-cierre>para cerrar</div></div>
             <a class="btn" href="https://wa.me/51970667052?text=Hola%2C%20quiero%20hacer%20un%20pedido%20y%20participar%20en%20el%20sorteo%20del%20mes." target="_blank" rel="noopener">Comprar y participar</a>
           </div>
+          <p class="tiny" style="margin:1rem 0 0"><a href="sorteo.html" style="text-decoration:underline;color:var(--tx)">Ver premio y bases del sorteo</a></p>
         </div>
       </div>
     </div>
@@ -244,10 +247,11 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 </footer>
 
 
+<script src="cuenta.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script>
-var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',P=[],CK='cep_gal_v2',ultimo='',MIS=new Set();
+var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',LIM=8,PAG=8,P=[],CK='cep_gal_v2',ultimo='',MIS=new Set();
 function norm(t){return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 function esqueleto(){
   var h='';
@@ -304,16 +308,21 @@ function aplicar(){
   gal.querySelectorAll('.item').forEach(function(i){
     var okF=filtro==='todas'||i.dataset.tags.split(' ').indexOf(filtro)>-1;
     var okQ=!t||i.dataset.q.indexOf(t)>-1;
-    i.style.display=(okF&&okQ)?'':'none';
-    if(okF&&okQ)vis++;
+    var ok=okF&&okQ;
+    if(ok)vis++;
+    i.style.display=(ok&&vis<=LIM)?'':'none';
   });
   empty.hidden=vis>0||!P.length;
+  $mas.hidden=vis<=LIM;
 }
-q.addEventListener('input',aplicar);
+function filtrar(){LIM=PAG;aplicar()}
+var $mas=document.getElementById('mas');
+$mas.addEventListener('click',function(){LIM+=PAG;aplicar()});
+q.addEventListener('input',filtrar);
 document.querySelectorAll('.chip').forEach(function(ch){
   ch.addEventListener('click',function(){
     document.querySelectorAll('.chip').forEach(function(x){x.setAttribute('aria-pressed','false')});
-    ch.setAttribute('aria-pressed','true');filtro=ch.dataset.f;aplicar();
+    ch.setAttribute('aria-pressed','true');filtro=ch.dataset.f;filtrar();
   });
 });
 cargar();
