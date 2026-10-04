@@ -33,7 +33,7 @@
       <h1 class="h2" id="titulo">Inicia sesión</h1>
       <p class="sub" id="sub">Entra con tu apodo y contraseña.</p>
 
-      <div class="tabs" role="tablist" aria-label="Acceso">
+      <div class="tabs" id="tabs" role="tablist" aria-label="Acceso">
         <button class="tab" role="tab" type="button" id="t-entrar" aria-selected="true">Iniciar sesión</button>
         <button class="tab" role="tab" type="button" id="t-crear" aria-selected="false">Crear cuenta</button>
       </div>
@@ -48,9 +48,22 @@
             <label class="lbl" for="pass2">Repite la contraseña</label>
             <input id="pass2" type="password" autocomplete="new-password">
           </div>
+          <div id="tel-wrap" class="stack" hidden>
+            <label class="lbl" for="tel">Celular (WhatsApp)</label>
+            <input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="9XX XXX XXX">
+            <p class="tiny" style="margin:0">Solo lo usamos para contactarte si ganas el sorteo. No se muestra en tu perfil.</p>
+          </div>
           <button class="btn full" type="submit" id="ok">Iniciar sesión</button>
           <p class="tiny" id="m" style="margin:0"></p>
           <p class="tiny" id="ayuda" style="margin:0"></p>
+        </form>
+
+        <form id="f-tel" class="stack" novalidate hidden>
+          <label class="lbl" for="tel2">Celular (WhatsApp)</label>
+          <input id="tel2" type="tel" inputmode="tel" autocomplete="tel" placeholder="9XX XXX XXX">
+          <p class="tiny" style="margin:0">Solo lo usamos para contactarte si ganas el sorteo. No se muestra en tu perfil.</p>
+          <button class="btn full" type="submit">Guardar y continuar</button>
+          <p class="tiny" id="m-tel" style="margin:0"></p>
         </form>
       </div>
     </div>
@@ -61,33 +74,54 @@
 <script src="supabase.js"></script>
 <script>
 var $=function(i){return document.getElementById(i)};
-var DOM='@carrosescala.pe',modo='entrar';
+var DOM='@carrosescala.pe',modo='entrar',UID=null;
 var WA='https://wa.me/51970667052?text=Hola%2C%20olvid%C3%A9%20mi%20contrase%C3%B1a%20de%20la%20comunidad.';
+var Q=new URLSearchParams(location.search);
+var VOLVER=Q.get('volver')==='subir.html'?'subir.html':'index.html';
+var COD=(Q.get('c')||'').replace(/[^A-Za-z0-9-]/g,'').slice(0,20);
+var DEST=VOLVER==='subir.html'?'subir.html'+(COD?'?c='+encodeURIComponent(COD):''):'index.html';
 
-function msg(t,err){var e=$('m');e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
+function ir(){location.href=DEST}
+function msg(t,err,id){var e=$(id||'m');e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
 function setModo(m){
   modo=m;
   var c=m==='crear';
   $('t-entrar').setAttribute('aria-selected',c?'false':'true');
   $('t-crear').setAttribute('aria-selected',c?'true':'false');
   $('rep').hidden=!c;
+  $('tel-wrap').hidden=!c;
   $('titulo').textContent=c?'Crea tu cuenta':'Inicia sesión';
-  $('sub').textContent=c?'Elige un apodo y una contraseña. Es gratis y toma un minuto.':'Entra con tu apodo y contraseña.';
+  $('sub').textContent=c?'Elige un apodo y una contraseña, y agrega tu celular. Es gratis y toma un minuto.':'Entra con tu apodo y contraseña.';
   $('ok').textContent=c?'Crear cuenta':'Iniciar sesión';
   $('pass').autocomplete=c?'new-password':'current-password';
   $('ayuda').innerHTML=c?'Guarda bien tu apodo y contraseña: no se pueden recuperar por correo. Al crear tu cuenta aceptas nuestra <a class="link" href="privacidad.html">política de privacidad</a>.':'¿Olvidaste tu contraseña? <a class="link" href="'+WA+'" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.';
   msg('');
-  history.replaceState(null,'','#'+m);
+  history.replaceState(null,'',location.pathname+location.search+'#'+m);
 }
 $('t-entrar').addEventListener('click',function(){setModo('entrar')});
 $('t-crear').addEventListener('click',function(){setModo('crear')});
 
+function mostrarTel(){
+  $('f').hidden=true;$('tabs').hidden=true;$('f-tel').hidden=false;
+  $('titulo').textContent='Un último paso';
+  $('sub').textContent='Agrega tu celular para poder contactarte si ganas el sorteo.';
+}
+async function continuar(uid){
+  UID=uid;
+  if(await tieneTel(uid)){ir();return}
+  mostrarTel();
+}
+
 $('f').addEventListener('submit',async function(e){
   e.preventDefault();
-  var crear=modo==='crear',a=$('apodo').value.trim().toLowerCase(),pw=$('pass').value;
+  var crear=modo==='crear',a=$('apodo').value.trim().toLowerCase(),pw=$('pass').value,tel=null;
   if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('Apodo inválido: 3 a 20 letras, números o _.',true);return}
   if(pw.length<6){msg('La contraseña necesita 6 caracteres o más.',true);return}
-  if(crear&&pw!==$('pass2').value){msg('Las contraseñas no coinciden.',true);return}
+  if(crear){
+    if(pw!==$('pass2').value){msg('Las contraseñas no coinciden.',true);return}
+    tel=normTel($('tel').value);
+    if(!tel){msg('Escribe un celular peruano válido: 9 dígitos y empieza con 9.',true);return}
+  }
   var b=$('ok');b.disabled=true;msg('Un momento…');
   var cred={email:a+DOM,password:pw};
   var r=crear?await SB.auth.signUp(cred):await SB.auth.signInWithPassword(cred);
@@ -99,13 +133,27 @@ $('f').addEventListener('submit',async function(e){
   var uid=r.data.user.id;
   var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
   if(!p.data){await SB.from('perfiles').insert({user_id:uid,apodo:a})}
-  location.href='index.html';
+  if(crear){
+    var c=await SB.from('contactos').upsert({user_id:uid,telefono:tel});
+    if(c.error){console.error(c.error);UID=uid;mostrarTel();return}
+    ir();return;
+  }
+  continuar(uid);
+});
+
+$('f-tel').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var t=normTel($('tel2').value);
+  if(!t){msg('Escribe un celular peruano válido: 9 dígitos y empieza con 9.',true,'m-tel');return}
+  var r=await SB.from('contactos').upsert({user_id:UID,telefono:t});
+  if(r.error){console.error(r.error);msg('No se pudo guardar. Intenta de nuevo.',true,'m-tel');return}
+  ir();
 });
 
 (async function(){
   var s=(await SB.auth.getSession()).data.session;
-  if(s&&s.user.email){location.replace('index.html');return}
-  setModo(location.hash==='#crear'?'crear':'entrar');
+  if(s&&s.user.email){continuar(s.user.id);return}
+  setModo(location.hash==='#crear'||(VOLVER==='subir.html'&&location.hash!=='#entrar')?'crear':'entrar');
 })();
 </script>
 </body>
