@@ -75,7 +75,7 @@ function setModo(m){
   $('sub').textContent=c?'Elige un apodo y una contraseña. Es gratis y toma un minuto.':'Entra con tu apodo y contraseña.';
   $('ok').textContent=c?'Crear cuenta':'Iniciar sesión';
   $('pass').autocomplete=c?'new-password':'current-password';
-  $('ayuda').innerHTML=c?'Guarda bien tu apodo y contraseña: no se pueden recuperar por correo.':'¿Olvidaste tu contraseña? <a class="link" href="'+WA+'" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.';
+  $('ayuda').innerHTML=c?'Guarda bien tu apodo y contraseña: no se pueden recuperar por correo. Al crear tu cuenta aceptas nuestra <a class="link" href="privacidad.html">política de privacidad</a>.':'¿Olvidaste tu contraseña? <a class="link" href="'+WA+'" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.';
   msg('');
   history.replaceState(null,'','#'+m);
 }
