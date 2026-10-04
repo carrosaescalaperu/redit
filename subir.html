@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="base.css">
 <style>
+.logo{display:flex;align-items:center}
+.logo img{display:block;height:40px;width:auto}
 .badge{display:inline-flex;background:var(--red);color:#fff;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:.72rem;letter-spacing:.04em;padding:4px 12px;border-radius:var(--r-pill)}
 .days{font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.6rem}
 .card:has(.prize){padding:0;overflow:hidden}
@@ -21,8 +23,8 @@ main{padding-top:2rem}
 </head>
 <body>
 <nav class="nav" aria-label="Principal">
-  <a class="logo" href="index.html">Carros Escala <span>Perú</span></a>
-  <a class="back" href="index.html#galeria">← Volver a la galería</a>
+  <a class="logo" href="index.html"><img src="logo.png" alt="Carros Escala Perú"></a>
+  <a class="btn sm" href="index.html">Inicio</a>
 </nav>
 
 <section class="wrap wide" style="padding-top:2rem">
@@ -35,7 +37,8 @@ main{padding-top:2rem}
         <h2 class="h2" style="margin-top:.9rem">Gana un coche a escala</h2>
         <p class="sub" style="margin-bottom:1rem">Sube una foto de tu compra y entras al sorteo de un auto a escala, ¡totalmente gratis! Mientras más compras tengas, más posibilidades de ganar.</p>
         <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
-          <div><div class="days">12 días</div><div class="tiny">para cerrar</div></div>
+          <div><div class="days" data-cuenta role="timer" style="font-variant-numeric:tabular-nums">—</div><div class="tiny" data-cierre>para cerrar</div></div>
+          <a href="sorteo.html" class="tiny" style="text-decoration:underline;color:var(--tx)">Ver premio y bases</a>
         </div>
       </div>
     </div>
@@ -90,6 +93,7 @@ main{padding-top:2rem}
   </div>
 </main>
 
+<script src="cuenta.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
