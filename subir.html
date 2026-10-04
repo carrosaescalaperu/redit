@@ -172,7 +172,7 @@ $('b-subir').addEventListener('click',async function(){
       src=await heic2any({blob:f,toType:'image/jpeg',quality:.85});
       if(Array.isArray(src))src=src[0];
     }
-    var blob=await comprimir(src),ruta=uid+'/'+crypto.randomUUID()+'.jpg';
+    var blob=await comprimir(src),ruta=uid+'/'+uuid()+'.jpg';
     var up=await SB.storage.from('fotos').upload(ruta,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
     if(up.error)throw up.error;
     var r=await SB.rpc('subir_foto',{c:codigo,r:ruta});
