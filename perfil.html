@@ -42,7 +42,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 main{padding:2.5rem 0 4rem}
 .prof{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
 .prof>*{min-width:0}
-.gal>*,.cfg{min-width:0;max-width:100%}
+.gal>*{min-width:0;max-width:100%}
 img,textarea,input{max-width:100%}
 html,body{overflow-x:hidden}
 .side{padding:2rem;position:sticky;top:76px}
@@ -76,6 +76,13 @@ html,body{overflow-x:hidden}
 .like.on{color:var(--red);border-color:rgba(225,6,0,.5)}
 .like.on svg{fill:var(--red)}
 .cfg{padding:2rem;margin-bottom:1.5rem}
+.dlg{border:1px solid var(--line);border-radius:var(--r-md);background:var(--card);color:var(--tx);padding:0;width:min(560px,calc(100% - 2rem));max-height:calc(100dvh - 2rem);overflow:auto}
+.dlg::backdrop{background:rgba(0,0,0,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.dlg .cfg{margin:0;padding:1.75rem}
+.dlg-h{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.25rem}
+.dlg-h h2{margin:0!important}
+.x{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--tx);font-size:1.3rem;line-height:1;cursor:pointer;transition:background var(--t-smooth)}
+.x:hover{background:rgba(255,255,255,.08)}
 .cfg h2{font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1.3rem;margin-bottom:1.25rem}
 .blk{display:grid;gap:.75rem;padding:1.25rem 0;border-top:1px solid var(--line)}
 .blk:first-of-type{border-top:0;padding-top:0}
@@ -142,8 +149,8 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
           </div>
         </div>
 
-        <div class="card cfg" id="config" hidden>
-          <h2>Configuración de perfil</h2>
+        <dialog id="config" class="dlg" aria-labelledby="cfg-t"><div class="dlg-in cfg">
+          <header class="dlg-h"><h2 id="cfg-t">Configuración de perfil</h2><button type="button" class="x" id="x-config" aria-label="Cerrar">×</button></header>
 
           <div class="blk">
             <div class="lbl">Foto de perfil</div>
@@ -179,7 +186,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
           <div class="blk">
             <div class="acts"><button class="btn-2" type="button" id="b-salir">Cerrar sesión</button></div>
           </div>
-        </div>
+        </div></dialog>
 
         <div class="gal" id="gal"></div>
         <p class="msg" id="vacio" hidden>Aún no tiene fotos publicadas.</p>
@@ -194,6 +201,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
   <div class="wrap">No es para cualquiera. Es para el que sabe.</div>
 </footer>
 
+<script src="cuenta.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
@@ -252,16 +260,15 @@ function comprimir(file){
 }
 
 async function cargarPart(){
-  var h=new Date(),ini=new Date(h.getFullYear(),h.getMonth(),1).toISOString();
+  var ini=new Date(CUENTA.inicio()).toISOString();
   var r=await SB.from('fotos').select('id,estado').eq('user_id',UID).eq('tipo','sorteo').gte('creada',ini);
   if(r.error){console.error(r.error);return}
   var d=r.data||[],rev=d.filter(function(x){return x.estado==='pendiente'}).length;
-  var mes=h.toLocaleDateString('es-PE',{month:'long'});
-  $('part-t').textContent='Tus participaciones en '+mes;
+    $('part-t').textContent='Tus participaciones para el sorteo del '+CUENTA.fechaCierre();
   $('part-n').textContent=d.length;
   $('part-d').textContent=d.length
-    ?'Cada compra registrada con su código suma una posibilidad. Se reinicia cada mes.'+(rev?' '+rev+' en revisión.':'')
-    :'Aún no tienes participaciones este mes. Registra tu pedido con el código de tu tarjeta.';
+    ?'Cada compra registrada con su código suma una posibilidad. Se reinicia después de cada sorteo.'+(rev?' '+rev+' en revisión.':'')
+    :'Aún no tienes participaciones para este sorteo. Registra tu pedido con el código de tu tarjeta.';
   $('part').hidden=false;
 }
 
@@ -314,10 +321,10 @@ function recortar(file){
 function activarConfig(){
   $('b-config').hidden=false;
   $('bio-in').value=PR.bio||'';$('ig-in').value=PR.instagram||'';
-  $('b-config').addEventListener('click',function(){
-    var c=$('config');c.hidden=!c.hidden;
-    this.textContent=c.hidden?'Configurar perfil':'Cerrar configuración';
-  });
+  var dlg=$('config');
+  $('b-config').addEventListener('click',function(){dlg.showModal()});
+  $('x-config').addEventListener('click',function(){dlg.close()});
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
 
   $('b-avatar').addEventListener('click',async function(){
     var f=$('f-avatar').files[0];
