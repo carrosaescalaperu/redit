@@ -6,16 +6,17 @@
 <title>Perfil · Carros Escala Perú</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://uktfnntgmjhhpaonsvch.supabase.co" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   color-scheme:dark;box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
   --bg:#0D0D0E;--card:#18181B;--glass:rgba(24,24,27,.75);--line:#27272A;--hi:rgba(255,255,255,.12);
-  --red:#E10600;--tx:#fff;--tx2:#A1A1AA;
+  --red:#E10600;--glow:rgba(225,6,0,.3);--tx:#fff;--tx2:#A1A1AA;
   --fh:'Chakra Petch',system-ui,-apple-system,sans-serif;--fb:'Inter',system-ui,-apple-system,sans-serif;
   --r-sm:8px;--r-md:18px;--r-pill:9999px;
-  --spring:cubic-bezier(.16,1,.3,1);--t-smooth:300ms var(--spring);
+  --spring:cubic-bezier(.16,1,.3,1);--t-fast:150ms var(--spring);--t-smooth:300ms var(--spring);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -28,29 +29,57 @@ h1,h2{margin:0}
 .logo img{display:block;height:40px;width:auto}
 .back{font-size:.875rem;color:var(--tx2);transition:color var(--t-smooth)}
 .back:hover{color:var(--tx)}
+.btn{display:inline-flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;letter-spacing:.04em;font-size:.875rem;background:var(--red);color:#fff;border:0;border-radius:var(--r-pill);padding:.65rem 1.6rem;cursor:pointer;transition:transform var(--t-fast),box-shadow var(--t-smooth)}
+.btn:hover{transform:scale(1.02);box-shadow:0 8px 24px var(--glow)}
+.btn:active{transform:scale(.97)}
 .btn-2{display:inline-flex;align-items:center;justify-content:center;font-family:var(--fb);font-weight:600;font-size:.875rem;background:transparent;color:var(--tx);border:1px solid var(--line);border-radius:var(--r-pill);padding:.65rem 1.6rem;cursor:pointer;transition:background var(--t-smooth),border-color var(--t-smooth)}
 .btn-2:hover{background:rgba(255,255,255,.06);border-color:var(--hi)}
-a:focus-visible,button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.btn:disabled,.btn-2:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .eyebrow{font-family:var(--fh);font-weight:600;font-style:italic;text-transform:uppercase;color:var(--red);font-size:.8125rem;letter-spacing:.08em;margin-bottom:.5rem}
 .tiny{font-size:.8125rem;color:var(--tx2)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md)}
 main{padding:2.5rem 0 4rem}
 .prof{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
 .side{padding:2rem;position:sticky;top:76px}
-.av{width:72px;height:72px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.6rem;margin-bottom:1rem}
+.av{width:72px;height:72px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.6rem;margin-bottom:1rem;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.av.sm{width:56px;height:56px;font-size:1.2rem;margin:0}
 .nick{font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.4rem;word-break:break-word}
-.num{font-family:var(--fh);font-weight:700;font-style:italic;font-size:2.25rem;line-height:1;margin-top:1.25rem}
+.bio{margin:.6rem 0 0;color:var(--tx2);font-size:.9375rem;line-height:1.6;word-break:break-word}
+.ig{display:inline-block;margin-top:.5rem;font-size:.875rem;text-decoration:underline}
+.stats{display:flex;gap:2rem;margin:1.25rem 0 1.5rem}
+.num{font-family:var(--fh);font-weight:700;font-style:italic;font-size:2.25rem;line-height:1}
+.sbtn{display:grid;gap:.6rem}
 .gal{display:grid;grid-template-columns:1fr;gap:1.25rem}
 .pic{overflow:hidden;transition:transform var(--t-smooth),border-color var(--t-smooth);display:grid;grid-template-columns:minmax(220px,340px) 1fr}
 .pic:hover{transform:translateY(-4px);border-color:var(--hi)}
-.ph{background:repeating-linear-gradient(45deg,#1c1c1f 0 12px,#1a1a1d 12px 24px);width:100%;aspect-ratio:1/1;position:relative;overflow:hidden}
+.ph{background:repeating-linear-gradient(45deg,#1c1c1f 0 12px,#1a1a1d 12px 24px);width:100%;aspect-ratio:1/1;position:relative;overflow:hidden;display:block}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .cap{padding:1.75rem 2rem;align-self:center}
-.desc{color:var(--tx2);font-size:.9375rem;line-height:1.65;margin:.9rem 0 0;max-width:62ch}
 .cap b{display:block;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1.35rem;line-height:1.15;margin-bottom:.25rem}
+.desc{color:var(--tx2);font-size:.9375rem;line-height:1.65;margin:.9rem 0 0;max-width:62ch}
+.lk{margin-top:1.1rem}
+.like{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid var(--line);border-radius:var(--r-pill);padding:.3rem .7rem;color:var(--tx2);font:600 .8125rem var(--fb);cursor:pointer;flex:none;transition:background var(--t-smooth),border-color var(--t-smooth),color var(--t-smooth)}
+.like:hover{background:rgba(255,255,255,.06);border-color:var(--hi);color:var(--tx)}
+.like.on{color:var(--red);border-color:rgba(225,6,0,.5)}
+.like.on svg{fill:var(--red)}
+.cfg{padding:2rem;margin-bottom:1.5rem}
+.cfg h2{font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1.3rem;margin-bottom:1.25rem}
+.blk{display:grid;gap:.75rem;padding:1.25rem 0;border-top:1px solid var(--line)}
+.blk:first-of-type{border-top:0;padding-top:0}
+.lbl{font-size:.8125rem;color:var(--tx2);font-weight:500}
+.avrow{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+input[type=text],input[type=password],textarea{width:100%;background:transparent;border:1px solid var(--line);border-radius:var(--r-md);padding:.7rem 1.1rem;color:var(--tx);font:500 .9375rem var(--fb);transition:border-color var(--t-smooth);resize:vertical}
+input[type=text],input[type=password]{border-radius:var(--r-pill)}
+input:focus,textarea:focus{border-color:#fff;outline:0}
+input::placeholder,textarea::placeholder{color:var(--tx2)}
+input[type=file]{color:var(--tx2);font:500 .875rem var(--fb);max-width:100%}
+.acts{display:flex;gap:.75rem;flex-wrap:wrap}
+.m{margin:0;min-height:1.2em}
 .msg{color:var(--tx2);padding:3rem 0}
 footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);font-size:.875rem}
-@media(max-width:900px){.prof{grid-template-columns:1fr}.side{position:static}.pic{grid-template-columns:1fr}.cap{padding:1.25rem 1.25rem 1.4rem}.cap b{font-size:1.15rem}}
+@media(max-width:900px){.prof{grid-template-columns:1fr}.side{position:static}.pic{grid-template-columns:1fr}.cap{padding:1.25rem 1.25rem 1.4rem}.cap b{font-size:1.15rem}.cfg{padding:1.5rem}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -69,12 +98,59 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
         <div class="eyebrow">Coleccionista</div>
         <div class="av" id="av"></div>
         <div class="nick" id="nick"></div>
-        <div class="tiny" id="since" style="margin:.25rem 0 0"></div>
-        <div class="num" id="cant">0</div>
-        <div class="tiny" style="margin-bottom:1.5rem">modelos publicados</div>
-        <button class="btn-2" type="button" id="share">Compartir perfil</button>
+        <p class="bio" id="bio" hidden></p>
+        <a class="ig" id="ig" href="#" target="_blank" rel="noopener" hidden></a>
+        <div class="tiny" id="since" style="margin-top:.5rem"></div>
+        <div class="stats">
+          <div><div class="num" id="cant">0</div><div class="tiny">modelos</div></div>
+          <div><div class="num" id="tl">0</div><div class="tiny">me gusta</div></div>
+        </div>
+        <div class="sbtn">
+          <button class="btn-2" type="button" id="share">Compartir perfil</button>
+          <button class="btn-2" type="button" id="b-config" hidden>Configurar perfil</button>
+        </div>
       </aside>
+
       <section>
+        <div class="card cfg" id="config" hidden>
+          <h2>Configuración de perfil</h2>
+
+          <div class="blk">
+            <div class="lbl">Foto de perfil</div>
+            <div class="avrow">
+              <div class="av sm" id="av2"></div>
+              <div>
+                <input type="file" id="f-avatar" accept="image/*">
+                <div class="tiny">JPG o PNG. Se recorta en cuadrado.</div>
+              </div>
+            </div>
+            <div class="acts"><button class="btn-2" type="button" id="b-avatar">Guardar foto</button></div>
+            <p class="tiny m" id="m-avatar"></p>
+          </div>
+
+          <div class="blk">
+            <label class="lbl" for="bio-in">Sobre ti (máx. 160 caracteres)</label>
+            <textarea id="bio-in" maxlength="160" rows="3" placeholder="Cuéntanos qué coleccionas"></textarea>
+            <label class="lbl" for="ig-in">Instagram (opcional)</label>
+            <input id="ig-in" type="text" maxlength="31" autocomplete="off" placeholder="tu_usuario">
+            <div class="acts"><button class="btn" type="button" id="b-guardar">Guardar cambios</button></div>
+            <p class="tiny m" id="m-perfil"></p>
+          </div>
+
+          <div class="blk">
+            <label class="lbl" for="p1">Nueva contraseña</label>
+            <input id="p1" type="password" minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres">
+            <label class="lbl" for="p2">Repite la contraseña</label>
+            <input id="p2" type="password" minlength="6" autocomplete="new-password">
+            <div class="acts"><button class="btn-2" type="button" id="b-pass">Cambiar contraseña</button></div>
+            <p class="tiny m" id="m-pass"></p>
+          </div>
+
+          <div class="blk">
+            <div class="acts"><button class="btn-2" type="button" id="b-salir">Cerrar sesión</button></div>
+          </div>
+        </div>
+
         <div class="gal" id="gal"></div>
         <p class="msg" id="vacio" hidden>Aún no tiene fotos publicadas.</p>
       </section>
@@ -93,39 +169,126 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
 <script>
 var $=function(i){return document.getElementById(i)};
 var n=(new URLSearchParams(location.search).get('u')||'').trim().toLowerCase();
+var MIS=new Set(),PR=null,UID=null;
+
+function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
+function pintarAv(el){
+  el.innerHTML='';
+  if(PR.avatar){var im=document.createElement('img');im.src=FOTO_URL(PR.avatar);im.alt='';el.appendChild(im)}
+  else{el.textContent=PR.apodo.charAt(0).toUpperCase()}
+}
+function pintarDatos(){
+  pintarAv($('av'));pintarAv($('av2'));
+  $('nick').textContent='@'+PR.apodo;
+  $('bio').textContent=PR.bio||'';$('bio').hidden=!PR.bio;
+  if(PR.instagram){$('ig').textContent='Instagram @'+PR.instagram;$('ig').href='https://instagram.com/'+encodeURIComponent(PR.instagram);$('ig').hidden=false}
+  else{$('ig').hidden=true}
+}
+function pintarFotos(d){
+  $('cant').textContent=d.length;
+  $('tl').textContent=d.reduce(function(a,x){return a+(x.likes||0)},0);
+  if(d.length){$('since').textContent='En la comunidad desde '+new Date(d[d.length-1].creada).toLocaleDateString('es-PE',{month:'long',year:'numeric'})}
+  $('gal').innerHTML=d.map(function(x){
+    var sub=[x.marca,x.escala].filter(Boolean).join(' · '),url=FOTO_URL(x.ruta);
+    return '<div class="card pic">'+
+      '<a class="ph" href="'+esc(url)+'" target="_blank" rel="noopener" aria-label="Abrir foto"><img src="'+esc(url)+'" alt="'+esc(x.modelo)+'" decoding="async" loading="lazy"></a>'+
+      '<div class="cap"><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+
+      '<div class="lk">'+likeBtn(x.id,x.likes,MIS.has(x.id))+'</div></div></div>';
+  }).join('');
+  $('vacio').hidden=d.length>0;
+}
+
+function recortar(file){
+  return new Promise(function(ok,ko){
+    var img=new Image(),u=URL.createObjectURL(file);
+    img.onload=function(){
+      var l=Math.min(img.width,img.height),c=document.createElement('canvas');
+      c.width=c.height=400;
+      c.getContext('2d').drawImage(img,(img.width-l)/2,(img.height-l)/2,l,l,0,0,400,400);
+      URL.revokeObjectURL(u);
+      c.toBlob(function(b){b?ok(b):ko()},'image/jpeg',.85);
+    };
+    img.onerror=ko;img.src=u;
+  });
+}
+
+function activarConfig(){
+  $('b-config').hidden=false;
+  $('bio-in').value=PR.bio||'';$('ig-in').value=PR.instagram||'';
+  $('b-config').addEventListener('click',function(){
+    var c=$('config');c.hidden=!c.hidden;
+    this.textContent=c.hidden?'Configurar perfil':'Cerrar configuración';
+  });
+
+  $('b-avatar').addEventListener('click',async function(){
+    var f=$('f-avatar').files[0];
+    if(!f){msg('m-avatar','Elige una imagen.',true);return}
+    var b=this;b.disabled=true;msg('m-avatar','Subiendo…');
+    try{
+      var blob=await recortar(f),ruta=UID+'/avatar-'+Date.now()+'.jpg',viejo=PR.avatar;
+      var up=await SB.storage.from('fotos').upload(ruta,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
+      if(up.error)throw up.error;
+      var r=await SB.from('perfiles').update({avatar:ruta}).eq('user_id',UID);
+      if(r.error)throw r.error;
+      PR.avatar=ruta;pintarDatos();
+      if(viejo){await SB.storage.from('fotos').remove([viejo])}
+      $('f-avatar').value='';msg('m-avatar','Foto actualizada.');
+    }catch(e){console.error(e);msg('m-avatar','No se pudo guardar. Prueba con una imagen JPG o PNG.',true)}
+    b.disabled=false;
+  });
+
+  $('b-guardar').addEventListener('click',async function(){
+    var bio=$('bio-in').value.trim(),ig=$('ig-in').value.trim().replace(/^@/,'');
+    if(ig&&!/^[A-Za-z0-9._]{1,30}$/.test(ig)){msg('m-perfil','Instagram: solo letras, números, punto y guion bajo.',true);return}
+    var b=this;b.disabled=true;msg('m-perfil','Guardando…');
+    var r=await SB.from('perfiles').update({bio:bio||null,instagram:ig||null}).eq('user_id',UID);
+    if(r.error){console.error(r.error);msg('m-perfil','No se pudo guardar.',true)}
+    else{PR.bio=bio||null;PR.instagram=ig||null;pintarDatos();msg('m-perfil','Cambios guardados.')}
+    b.disabled=false;
+  });
+
+  $('b-pass').addEventListener('click',async function(){
+    var a=$('p1').value,c=$('p2').value;
+    if(a.length<6){msg('m-pass','Mínimo 6 caracteres.',true);return}
+    if(a!==c){msg('m-pass','Las contraseñas no coinciden.',true);return}
+    var b=this;b.disabled=true;msg('m-pass','Guardando…');
+    var r=await SB.auth.updateUser({password:a});
+    if(r.error){msg('m-pass','Error: '+r.error.message,true)}
+    else{$('p1').value='';$('p2').value='';msg('m-pass','Contraseña cambiada.')}
+    b.disabled=false;
+  });
+
+  $('b-salir').addEventListener('click',async function(){
+    await SB.auth.signOut();location.href='index.html';
+  });
+}
 
 async function init(){
   try{
     if(!n){throw 'sin-apodo'}
-    var p=await SB.from('perfiles').select('user_id,apodo').eq('apodo',n).maybeSingle();
+    var ses=(await SB.auth.getSession()).data.session;
+    UID=ses&&ses.user.email?ses.user.id:null;
+    var p=await SB.from('perfiles').select('user_id,apodo,avatar,bio,instagram').eq('apodo',n).maybeSingle();
     if(p.error)throw p.error;
     if(!p.data){throw 'sin-perfil'}
-    var f=await SB.from('fotos').select('modelo,marca,escala,descripcion,ruta,creada').eq('user_id',p.data.user_id).eq('estado','aprobada').order('creada',{ascending:false});
+    PR=p.data;
+    var f=await SB.from('fotos').select('id,modelo,marca,escala,descripcion,ruta,creada,likes').eq('user_id',PR.user_id).eq('estado','aprobada').order('creada',{ascending:false});
     if(f.error)throw f.error;
     var d=f.data||[];
-
-    document.title='@'+p.data.apodo+' · Carros Escala Perú';
-    $('av').textContent=p.data.apodo.charAt(0).toUpperCase();
-    $('nick').textContent='@'+p.data.apodo;
-    $('cant').textContent=d.length;
-    if(d.length){
-      $('since').textContent='En la comunidad desde '+new Date(d[d.length-1].creada).toLocaleDateString('es-PE',{month:'long',year:'numeric'});
+    if(UID&&d.length){
+      var l=await SB.from('likes').select('foto_id').eq('user_id',UID).in('foto_id',d.map(function(x){return x.id}));
+      MIS=new Set((l.data||[]).map(function(x){return x.foto_id}));
     }
-    $('gal').innerHTML=d.map(function(x){
-      var sub=[x.marca,x.escala].filter(Boolean).join(' · ');
-      var url=FOTO_URL(x.ruta);
-      return '<a class="card pic" href="'+esc(url)+'" target="_blank" rel="noopener">'+
-        '<div class="ph"><img src="'+esc(url)+'" alt="'+esc(x.modelo)+'" loading="lazy"></div>'+
-        '<div class="cap"><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+'</div></a>';
-    }).join('');
-    $('vacio').hidden=d.length>0;
+    document.title='@'+PR.apodo+' · Carros Escala Perú';
+    pintarDatos();pintarFotos(d);
     $('carga').hidden=true;$('perfil').hidden=false;
 
     $('share').addEventListener('click',function(){
       var b=this,u=location.href;
-      if(navigator.share){navigator.share({title:'@'+p.data.apodo,url:u}).catch(function(){})}
+      if(navigator.share){navigator.share({title:'@'+PR.apodo,url:u}).catch(function(){})}
       else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){b.textContent='Enlace copiado';setTimeout(function(){b.textContent='Compartir perfil'},2000)})}
     });
+    if(UID&&UID===PR.user_id)activarConfig();
   }catch(err){
     console.error(err);
     $('carga').hidden=true;
