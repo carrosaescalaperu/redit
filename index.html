@@ -89,6 +89,7 @@ section{padding:3.5rem 0}
 .item .meta{padding:.75rem .25rem .25rem}
 .item .row{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
 .item .tt{min-width:0;display:block}
+.item b.cm{font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .item a.ph{display:flex}
 .like{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid var(--line);border-radius:var(--r-pill);padding:.3rem .7rem;color:var(--tx2);font:600 .8125rem var(--fb);cursor:pointer;flex:none;transition:background var(--t-smooth),border-color var(--t-smooth),color var(--t-smooth)}
 .like:hover{background:rgba(255,255,255,.06);border-color:var(--hi);color:var(--tx)}
@@ -258,7 +259,7 @@ function armar(d,ap){
   d.forEach(function(x){
     var n=ap[x.user_id];if(!n)return;
     P.push({
-      id:x.id,likes:x.likes||0,n:n,modelo:x.modelo,ruta:x.ruta,destacada:!!x.destacada,
+      id:x.id,likes:x.likes||0,n:n,libre:x.tipo==='libre',modelo:x.modelo||'',com:x.comentario||'',ruta:x.ruta,destacada:!!x.destacada,
       sub:[x.marca,x.escala].filter(Boolean).join(' · '),
       tags:[x.destacada?'destacada':'',(Date.now()-new Date(x.creada)<30*864e5)?'reciente':'',x.marca==='F1'?'f1':''].join(' ')
     });
@@ -274,7 +275,7 @@ async function cargar(){
   var ses=(await SB.auth.getSession()).data.session;
   var uid=ses&&ses.user.email?ses.user.id:null;
   var r=await Promise.all([
-    SB.from('fotos').select('id,user_id,modelo,marca,escala,ruta,creada,destacada,likes').eq('estado','aprobada').eq('tipo','sorteo').order('creada',{ascending:false}),
+    SB.from('fotos').select('id,user_id,modelo,marca,escala,ruta,creada,destacada,likes,tipo,comentario').eq('estado','aprobada').order('creada',{ascending:false}),
     SB.from('perfiles').select('user_id,apodo'),
     uid?SB.from('likes').select('foto_id').eq('user_id',uid):Promise.resolve({data:[]})
   ]);
@@ -291,9 +292,9 @@ function pintar(){
   P.forEach(function(c,k){
     var url='perfil.html?u='+encodeURIComponent(c.n);
     var b=document.createElement('div');
-    b.className='item';b.dataset.tags=c.tags;b.dataset.q=norm(c.modelo+' '+c.n);
-    b.innerHTML='<a class="ph" href="'+url+'" aria-label="Ver perfil de @'+esc(c.n)+'"><img src="'+esc(FOTO_URL(c.ruta))+'" alt="'+esc(c.modelo)+'" decoding="async" '+(k<4?'fetchpriority="high"':'loading="lazy"')+'>'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</a>'+
-      '<div class="meta"><div class="row"><a class="tt" href="'+url+'"><b>'+esc(c.modelo)+'</b><div class="tiny sl">@'+esc(c.n)+(c.sub?' · '+esc(c.sub):'')+'</div></a>'+likeBtn(c.id,c.likes,MIS.has(c.id))+'</div></div>';
+    b.className='item';b.dataset.tags=c.tags;b.dataset.q=norm(c.modelo+' '+c.com+' '+c.n);
+    b.innerHTML='<a class="ph" href="'+url+'" aria-label="Ver perfil de @'+esc(c.n)+'"><img src="'+esc(FOTO_URL(c.ruta))+'" alt="'+esc(c.modelo||c.com||'Foto de @'+c.n)+'" decoding="async" '+(k<4?'fetchpriority="high"':'loading="lazy"')+'>'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</a>'+
+      '<div class="meta"><div class="row"><a class="tt" href="'+url+'">'+(c.libre?'<b class="cm">'+esc(c.com||'Publicación')+'</b><div class="tiny sl">@'+esc(c.n)+'</div>':'<b>'+esc(c.modelo)+'</b><div class="tiny sl">@'+esc(c.n)+(c.sub?' · '+esc(c.sub):'')+'</div>')+'</a>'+likeBtn(c.id,c.likes,MIS.has(c.id))+'</div></div>';
     gal.appendChild(b);
   });
   aplicar();
