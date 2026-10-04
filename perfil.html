@@ -61,6 +61,10 @@ main{padding:2.5rem 0 4rem}
 .desc{color:var(--tx2);font-size:.9375rem;line-height:1.65;margin:.9rem 0 0;max-width:62ch}
 .lk{margin-top:1.1rem}
 .badge{display:inline-flex;background:var(--red);color:#fff;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:.72rem;letter-spacing:.04em;padding:4px 12px;border-radius:var(--r-pill);margin-bottom:.75rem}
+.part{border:1px solid var(--line);border-radius:var(--r-md);padding:1rem 1.1rem;margin:0 0 1.25rem}
+.part .num{font-size:2rem;margin:.35rem 0}
+.ask{margin:1.1rem 0 0;font-size:.8125rem;color:var(--tx2)}
+.ask a{color:var(--tx);text-decoration:underline}
 .post{margin:0 0 .6rem;font-size:1rem;line-height:1.6;color:var(--tx);word-break:break-word;white-space:pre-line}
 .prev{max-width:240px;border-radius:var(--r-sm);display:block}
 .like{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid var(--line);border-radius:var(--r-pill);padding:.3rem .7rem;color:var(--tx2);font:600 .8125rem var(--fb);cursor:pointer;flex:none;transition:background var(--t-smooth),border-color var(--t-smooth),color var(--t-smooth)}
@@ -107,6 +111,11 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
         <div class="stats">
           <div><div class="num" id="cant">0</div><div class="tiny">modelos</div></div>
           <div><div class="num" id="tl">0</div><div class="tiny">me gusta</div></div>
+        </div>
+        <div class="part" id="part" hidden>
+          <div class="tiny" id="part-t"></div>
+          <div class="num" id="part-n">0</div>
+          <div class="tiny" id="part-d"></div>
         </div>
         <div class="sbtn">
           <button class="btn-2" type="button" id="share">Compartir perfil</button>
@@ -217,7 +226,9 @@ function pintarFotos(d){
     var sub=[x.marca,x.escala].filter(Boolean).join(' · ');
     return '<div class="card pic">'+img+
       '<div class="cap"><span class="badge">En el sorteo</span><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+
-      '<div class="lk">'+likeBtn(x.id,x.likes,MIS.has(x.id))+'</div></div></div>';
+      '<div class="lk">'+likeBtn(x.id,x.likes,MIS.has(x.id))+'</div>'+
+      (UID&&UID===PR.user_id?'':'<p class="ask">¿Te gustó este modelo? <a href="https://wa.me/51970667052?text='+encodeURIComponent('Hola, vi el '+x.modelo+' en la comunidad y quiero pedirlo.')+'" target="_blank" rel="noopener">Pídelo por WhatsApp</a></p>')+
+      '</div></div>';
   }).join('');
   $('vacio').hidden=d.length>0;
 }
@@ -234,6 +245,20 @@ function comprimir(file){
     };
     img.onerror=ko;img.src=u;
   });
+}
+
+async function cargarPart(){
+  var h=new Date(),ini=new Date(h.getFullYear(),h.getMonth(),1).toISOString();
+  var r=await SB.from('fotos').select('id,estado').eq('user_id',UID).eq('tipo','sorteo').gte('creada',ini);
+  if(r.error){console.error(r.error);return}
+  var d=r.data||[],rev=d.filter(function(x){return x.estado==='pendiente'}).length;
+  var mes=h.toLocaleDateString('es-PE',{month:'long'});
+  $('part-t').textContent='Tus participaciones en '+mes;
+  $('part-n').textContent=d.length;
+  $('part-d').textContent=d.length
+    ?'Cada compra registrada con su código suma una posibilidad. Se reinicia cada mes.'+(rev?' '+rev+' en revisión.':'')
+    :'Aún no tienes participaciones este mes. Registra tu pedido con el código de tu tarjeta.';
+  $('part').hidden=false;
 }
 
 function activarNuevo(){
@@ -358,7 +383,7 @@ async function init(){
       if(navigator.share){navigator.share({title:'@'+PR.apodo,url:u}).catch(function(){})}
       else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){b.textContent='Enlace copiado';setTimeout(function(){b.textContent='Compartir perfil'},2000)})}
     });
-    if(UID&&UID===PR.user_id){activarConfig();activarNuevo()}
+    if(UID&&UID===PR.user_id){activarConfig();activarNuevo();cargarPart()}
   }catch(err){
     console.error(err);
     $('carga').hidden=true;
