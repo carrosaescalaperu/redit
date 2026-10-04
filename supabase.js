@@ -42,3 +42,14 @@ async function tieneTel(uid){
   var r=await SB.from('contactos').select('telefono').eq('user_id',uid).maybeSingle();
   return r.data?r.data.telefono:null;
 }
+
+/* ---- Identificador aleatorio (funciona también en navegadores antiguos o sin HTTPS) ---- */
+function uuid(){
+  if(window.crypto&&crypto.randomUUID&&window.isSecureContext)return crypto.randomUUID();
+  var b=new Uint8Array(16);
+  if(window.crypto&&crypto.getRandomValues){crypto.getRandomValues(b)}
+  else{for(var i=0;i<16;i++)b[i]=Math.floor(Math.random()*256)}
+  b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+  var h=[].map.call(b,function(x){return ('0'+x.toString(16)).slice(-2)}).join('');
+  return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+}
