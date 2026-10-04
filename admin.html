@@ -67,13 +67,16 @@ $('f-login').addEventListener('submit',async function(e){
 
 function tarjeta(f,ap,pend){
   D[f.id]=f;
-  var sub=[f.marca,f.escala].filter(Boolean).join(' · ');
+  var libre=f.tipo==='libre';
+  var titulo=libre?'Publicación libre':f.modelo;
+  var sub=libre?(f.comentario||'Sin comentario'):[f.marca,f.escala].filter(Boolean).join(' · ');
+  var cod=libre?'':' · '+f.codigo;
   var acts=pend
     ?'<button class="btn sm" data-a="ok" data-id="'+f.id+'">Aprobar</button><button class="btn-2 sm" data-a="del" data-id="'+f.id+'">Rechazar</button>'
     :'<button class="btn-2 sm" data-a="dest" data-id="'+f.id+'">'+(f.destacada?'Quitar destacada':'Destacar')+'</button><button class="btn-2 sm" data-a="del" data-id="'+f.id+'">Eliminar</button>';
-  return '<div class="card it"><div class="ph"><img src="'+esc(FOTO_URL(f.ruta))+'" alt="'+esc(f.modelo)+'" loading="lazy"></div>'+
-    '<div class="b"><b>'+esc(f.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+
-    '<div class="tiny">@'+esc(ap[f.user_id]||'sin apodo')+' · '+esc(f.codigo)+'</div>'+
+  return '<div class="card it"><div class="ph"><img src="'+esc(FOTO_URL(f.ruta))+'" alt="'+esc(titulo)+'" loading="lazy"></div>'+
+    '<div class="b"><b>'+esc(titulo)+'</b><div class="tiny">'+esc(sub)+'</div>'+
+    '<div class="tiny">@'+esc(ap[f.user_id]||'sin apodo')+esc(cod)+'</div>'+
     '<div class="acts">'+acts+'</div></div></div>';
 }
 
