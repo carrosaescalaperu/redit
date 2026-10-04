@@ -78,7 +78,7 @@ main{padding-top:2rem}
           <label class="lbl" for="foto">Tu foto</label>
           <input id="foto" type="file" accept="image/*">
           <img id="prev" class="prev" alt="Vista previa" hidden>
-          <p class="tiny" style="margin:0">Al participar, aceptas que tus imágenes puedan mostrarse en nuestra web y redes sociales con fines comerciales.</p>
+          <p class="tiny" style="margin:0">Al participar, aceptas que tus imágenes puedan mostrarse en nuestra web y redes sociales con fines comerciales. Más información en nuestra <a href="privacidad.html" style="text-decoration:underline">política de privacidad</a>.</p>
           <div><button class="btn" type="button" id="b-subir">Enviar foto</button></div>
           <p class="tiny" id="m-subir" style="margin:0"></p>
         </div>
@@ -154,11 +154,11 @@ function comprimir(file){
   return new Promise(function(ok,ko){
     var img=new Image(),u=URL.createObjectURL(file);
     img.onload=function(){
-      var k=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement('canvas');
+      var k=Math.min(1,1280/Math.max(img.width,img.height)),c=document.createElement('canvas');
       c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
       c.getContext('2d').drawImage(img,0,0,c.width,c.height);
       URL.revokeObjectURL(u);
-      c.toBlob(function(b){b?ok(b):ko()},'image/jpeg',.85);
+      c.toBlob(function(b){b?ok(b):ko()},'image/jpeg',.8);
     };
     img.onerror=ko;img.src=u;
   });
@@ -176,7 +176,7 @@ $('b-subir').addEventListener('click',async function(){
       if(Array.isArray(src))src=src[0];
     }
     var blob=await comprimir(src),ruta=uid+'/'+crypto.randomUUID()+'.jpg';
-    var up=await SB.storage.from('fotos').upload(ruta,blob,{contentType:'image/jpeg'});
+    var up=await SB.storage.from('fotos').upload(ruta,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
     if(up.error)throw up.error;
     var r=await SB.rpc('subir_foto',{c:codigo,r:ruta});
     if(r.error){await SB.storage.from('fotos').remove([ruta]);throw r.error}
