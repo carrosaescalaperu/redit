@@ -60,6 +60,9 @@ main{padding:2.5rem 0 4rem}
 .cap b{display:block;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1.35rem;line-height:1.15;margin-bottom:.25rem}
 .desc{color:var(--tx2);font-size:.9375rem;line-height:1.65;margin:.9rem 0 0;max-width:62ch}
 .lk{margin-top:1.1rem}
+.badge{display:inline-flex;background:var(--red);color:#fff;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:.72rem;letter-spacing:.04em;padding:4px 12px;border-radius:var(--r-pill);margin-bottom:.75rem}
+.post{margin:0 0 .6rem;font-size:1rem;line-height:1.6;color:var(--tx);word-break:break-word;white-space:pre-line}
+.prev{max-width:240px;border-radius:var(--r-sm);display:block}
 .like{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid var(--line);border-radius:var(--r-pill);padding:.3rem .7rem;color:var(--tx2);font:600 .8125rem var(--fb);cursor:pointer;flex:none;transition:background var(--t-smooth),border-color var(--t-smooth),color var(--t-smooth)}
 .like:hover{background:rgba(255,255,255,.06);border-color:var(--hi);color:var(--tx)}
 .like.on{color:var(--red);border-color:rgba(225,6,0,.5)}
@@ -112,6 +115,20 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
       </aside>
 
       <section>
+        <div class="card cfg" id="nuevo" hidden>
+          <h2>Nueva publicación</h2>
+          <div class="blk">
+            <label class="lbl" for="f-post">Foto</label>
+            <input type="file" id="f-post" accept="image/*">
+            <img id="prev-post" class="prev" alt="Vista previa" hidden>
+            <label class="lbl" for="c-post">Comentario (opcional)</label>
+            <textarea id="c-post" maxlength="300" rows="3" placeholder="Escribe algo sobre tu foto"></textarea>
+            <p class="tiny" style="margin:0">Esta foto se publica en tu perfil. Para participar en el sorteo, regístrala con el código de tu tarjeta.</p>
+            <div class="acts"><button class="btn" type="button" id="b-post">Publicar</button></div>
+            <p class="tiny m" id="m-post"></p>
+          </div>
+        </div>
+
         <div class="card cfg" id="config" hidden>
           <h2>Configuración de perfil</h2>
 
@@ -164,6 +181,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
   <div class="wrap">No es para cualquiera. Es para el que sabe.</div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script>
@@ -185,17 +203,69 @@ function pintarDatos(){
   else{$('ig').hidden=true}
 }
 function pintarFotos(d){
-  $('cant').textContent=d.length;
+  var cs=d.filter(function(x){return x.tipo!=='libre'});
+  $('cant').textContent=cs.length;
   $('tl').textContent=d.reduce(function(a,x){return a+(x.likes||0)},0);
   if(d.length){$('since').textContent='En la comunidad desde '+new Date(d[d.length-1].creada).toLocaleDateString('es-PE',{month:'long',year:'numeric'})}
   $('gal').innerHTML=d.map(function(x){
-    var sub=[x.marca,x.escala].filter(Boolean).join(' · '),url=FOTO_URL(x.ruta);
-    return '<div class="card pic">'+
-      '<a class="ph" href="'+esc(url)+'" target="_blank" rel="noopener" aria-label="Abrir foto"><img src="'+esc(url)+'" alt="'+esc(x.modelo)+'" decoding="async" loading="lazy"></a>'+
-      '<div class="cap"><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+
+    var url=FOTO_URL(x.ruta),libre=x.tipo==='libre';
+    var img='<a class="ph" href="'+esc(url)+'" target="_blank" rel="noopener" aria-label="Abrir foto"><img src="'+esc(url)+'" alt="'+esc(libre?(x.comentario||'Foto de @'+PR.apodo):x.modelo)+'" decoding="async" loading="lazy"></a>';
+    if(libre){
+      var fe=new Date(x.creada).toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'});
+      return '<div class="card pic">'+img+'<div class="cap">'+(x.comentario?'<p class="post">'+esc(x.comentario)+'</p>':'')+'<div class="tiny">'+esc(fe)+'</div><div class="lk">'+likeBtn(x.id,x.likes,MIS.has(x.id))+'</div></div></div>';
+    }
+    var sub=[x.marca,x.escala].filter(Boolean).join(' · ');
+    return '<div class="card pic">'+img+
+      '<div class="cap"><span class="badge">En el sorteo</span><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+
       '<div class="lk">'+likeBtn(x.id,x.likes,MIS.has(x.id))+'</div></div></div>';
   }).join('');
   $('vacio').hidden=d.length>0;
+}
+
+function comprimir(file){
+  return new Promise(function(ok,ko){
+    var img=new Image(),u=URL.createObjectURL(file);
+    img.onload=function(){
+      var k=Math.min(1,1280/Math.max(img.width,img.height)),c=document.createElement('canvas');
+      c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(u);
+      c.toBlob(function(b){b?ok(b):ko()},'image/jpeg',.8);
+    };
+    img.onerror=ko;img.src=u;
+  });
+}
+
+function activarNuevo(){
+  $('nuevo').hidden=false;
+  $('f-post').addEventListener('change',function(){
+    var f=this.files[0],p=$('prev-post');
+    if(!f){p.hidden=true;return}
+    p.src=URL.createObjectURL(f);p.hidden=false;
+  });
+  $('b-post').addEventListener('click',async function(){
+    var f=$('f-post').files[0];
+    if(!f){msg('m-post','Elige una foto.',true);return}
+    var b=this;b.disabled=true;msg('m-post','Subiendo…');
+    try{
+      var src=f;
+      if(/heic|heif/i.test(f.type)||/\.hei[cf]$/i.test(f.name)){
+        src=await heic2any({blob:f,toType:'image/jpeg',quality:.85});
+        if(Array.isArray(src))src=src[0];
+      }
+      var blob=await comprimir(src),ruta=UID+'/'+crypto.randomUUID()+'.jpg';
+      var up=await SB.storage.from('fotos').upload(ruta,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
+      if(up.error)throw up.error;
+      var r=await SB.rpc('subir_post',{r:ruta,c:$('c-post').value});
+      if(r.error)throw r.error;
+      $('f-post').value='';$('c-post').value='';$('prev-post').hidden=true;
+      msg('m-post','Publicación enviada. Queda en revisión antes de mostrarse.');
+    }catch(e){
+      console.error(e);
+      msg('m-post',/demasiadas/i.test((e&&e.message)||'')?'Tienes varias publicaciones en revisión. Espera a que las aprobemos.':'No se pudo enviar. Intenta con otra imagen.',true);
+    }
+    b.disabled=false;
+  });
 }
 
 function recortar(file){
@@ -272,7 +342,7 @@ async function init(){
     if(p.error)throw p.error;
     if(!p.data){throw 'sin-perfil'}
     PR=p.data;
-    var f=await SB.from('fotos').select('id,modelo,marca,escala,descripcion,ruta,creada,likes').eq('user_id',PR.user_id).eq('estado','aprobada').order('creada',{ascending:false});
+    var f=await SB.from('fotos').select('id,modelo,marca,escala,descripcion,ruta,creada,likes,tipo,comentario').eq('user_id',PR.user_id).eq('estado','aprobada').order('creada',{ascending:false});
     if(f.error)throw f.error;
     var d=f.data||[];
     if(UID&&d.length){
@@ -288,7 +358,7 @@ async function init(){
       if(navigator.share){navigator.share({title:'@'+PR.apodo,url:u}).catch(function(){})}
       else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){b.textContent='Enlace copiado';setTimeout(function(){b.textContent='Compartir perfil'},2000)})}
     });
-    if(UID&&UID===PR.user_id)activarConfig();
+    if(UID&&UID===PR.user_id){activarConfig();activarNuevo()}
   }catch(err){
     console.error(err);
     $('carga').hidden=true;
