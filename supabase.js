@@ -29,3 +29,16 @@ document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('.like');
   if(b){e.preventDefault();e.stopPropagation();toggleLike(b)}
 });
+
+/* ---- Teléfono (solo celulares de Perú) ---- */
+function normTel(v){
+  var d=String(v||'').replace(/[\s\-().]/g,'');
+  if(/^9\d{8}$/.test(d))return '+51'+d;
+  if(/^519\d{8}$/.test(d))return '+'+d;
+  if(/^\+519\d{8}$/.test(d))return d;
+  return null;
+}
+async function tieneTel(uid){
+  var r=await SB.from('contactos').select('telefono').eq('user_id',uid).maybeSingle();
+  return r.data?r.data.telefono:null;
+}
