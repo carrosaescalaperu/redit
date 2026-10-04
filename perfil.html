@@ -88,8 +88,8 @@ html,body{overflow-x:hidden}
 .blk:first-of-type{border-top:0;padding-top:0}
 .lbl{font-size:.8125rem;color:var(--tx2);font-weight:500}
 .avrow{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-input[type=text],input[type=password],textarea{width:100%;background:transparent;border:1px solid var(--line);border-radius:var(--r-md);padding:.7rem 1.1rem;color:var(--tx);font:500 .9375rem var(--fb);transition:border-color var(--t-smooth);resize:vertical}
-input[type=text],input[type=password]{border-radius:var(--r-pill)}
+input[type=text],input[type=password],input[type=tel],textarea{width:100%;background:transparent;border:1px solid var(--line);border-radius:var(--r-md);padding:.7rem 1.1rem;color:var(--tx);font:500 .9375rem var(--fb);transition:border-color var(--t-smooth);resize:vertical}
+input[type=text],input[type=password],input[type=tel]{border-radius:var(--r-pill)}
 input:focus,textarea:focus{border-color:#fff;outline:0}
 input::placeholder,textarea::placeholder{color:var(--tx2)}
 input[type=file]{color:var(--tx2);font:500 .875rem var(--fb);max-width:100%}
@@ -139,7 +139,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
           <h2>Nueva publicación</h2>
           <div class="blk">
             <label class="lbl" for="f-post">Foto</label>
-            <input type="file" id="f-post" accept="image/*">
+            <input type="file" id="f-post" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif">
             <img id="prev-post" class="prev" alt="Vista previa" hidden>
             <label class="lbl" for="c-post">Comentario (opcional)</label>
             <textarea id="c-post" maxlength="300" rows="3" placeholder="Escribe algo sobre tu foto"></textarea>
@@ -157,7 +157,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
             <div class="avrow">
               <div class="av sm" id="av2"></div>
               <div>
-                <input type="file" id="f-avatar" accept="image/*">
+                <input type="file" id="f-avatar" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif">
                 <div class="tiny">JPG o PNG. Se recorta en cuadrado.</div>
               </div>
             </div>
@@ -172,6 +172,14 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
             <input id="ig-in" type="text" maxlength="31" autocomplete="off" placeholder="tu_usuario">
             <div class="acts"><button class="btn" type="button" id="b-guardar">Guardar cambios</button></div>
             <p class="tiny m" id="m-perfil"></p>
+          </div>
+
+          <div class="blk">
+            <label class="lbl" for="tel-in">Celular (WhatsApp)</label>
+            <input id="tel-in" type="tel" inputmode="tel" autocomplete="tel" placeholder="9XX XXX XXX">
+            <p class="tiny" style="margin:0">Solo lo usamos para contactarte si ganas el sorteo. No se muestra en tu perfil.</p>
+            <div class="acts"><button class="btn-2" type="button" id="b-tel">Guardar celular</button></div>
+            <p class="tiny m" id="m-tel"></p>
           </div>
 
           <div class="blk">
@@ -298,7 +306,7 @@ function activarNuevo(){
       msg('m-post','Publicación enviada. Queda en revisión antes de mostrarse.');
     }catch(e){
       console.error(e);
-      msg('m-post',/demasiadas/i.test((e&&e.message)||'')?'Tienes varias publicaciones en revisión. Espera a que las aprobemos.':'No se pudo enviar. Intenta con otra imagen.',true);
+      msg('m-post',/demasiadas/i.test((e&&e.message)||'')?'Tienes varias publicaciones en revisión. Espera a que las aprobemos.':'No pudimos leer esa imagen. Usa una foto JPG, PNG o HEIC (los archivos RAW o DNG no se pueden subir).',true);
     }
     b.disabled=false;
   });
@@ -325,6 +333,17 @@ function activarConfig(){
   $('b-config').addEventListener('click',function(){dlg.showModal()});
   $('x-config').addEventListener('click',function(){dlg.close()});
   dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+
+  tieneTel(UID).then(function(t){if(t)$('tel-in').value=t});
+  $('b-tel').addEventListener('click',async function(){
+    var t=normTel($('tel-in').value);
+    if(!t){msg('m-tel','Escribe un celular peruano válido: 9 dígitos y empieza con 9.',true);return}
+    var b=this;b.disabled=true;msg('m-tel','Guardando…');
+    var r=await SB.from('contactos').upsert({user_id:UID,telefono:t});
+    if(r.error){console.error(r.error);msg('m-tel','No se pudo guardar.',true)}
+    else{$('tel-in').value=t;msg('m-tel','Celular guardado.')}
+    b.disabled=false;
+  });
 
   $('b-avatar').addEventListener('click',async function(){
     var f=$('f-avatar').files[0];
