@@ -41,6 +41,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md)}
 main{padding:2.5rem 0 4rem}
 .prof{display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start}
+.prof>*{min-width:0}
+.gal>*,.cfg{min-width:0;max-width:100%}
+img,textarea,input{max-width:100%}
+html,body{overflow-x:hidden}
 .side{padding:2rem;position:sticky;top:76px}
 .av{width:72px;height:72px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.6rem;margin-bottom:1rem;overflow:hidden;flex:none}
 .av img{width:100%;height:100%;object-fit:cover;display:block}
@@ -132,7 +136,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
             <img id="prev-post" class="prev" alt="Vista previa" hidden>
             <label class="lbl" for="c-post">Comentario (opcional)</label>
             <textarea id="c-post" maxlength="300" rows="3" placeholder="Escribe algo sobre tu foto"></textarea>
-            <p class="tiny" style="margin:0">Esta foto se publica en tu perfil. Para participar en el sorteo, regístrala con el código de tu tarjeta.</p>
+            <p class="tiny" style="margin:0">Esta foto se publica en tu perfil.</p>
             <div class="acts"><button class="btn" type="button" id="b-post">Publicar</button></div>
             <p class="tiny m" id="m-post"></p>
           </div>
@@ -196,7 +200,7 @@ footer{border-top:1px solid var(--line);padding:2.5rem 0 3rem;color:var(--tx2);f
 <script>
 var $=function(i){return document.getElementById(i)};
 var n=(new URLSearchParams(location.search).get('u')||'').trim().toLowerCase();
-var MIS=new Set(),PR=null,UID=null;
+var MIS=new Set(),PR=null,UID=null,DUENO=false;
 
 function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
 function pintarAv(el){
@@ -227,7 +231,7 @@ function pintarFotos(d){
     return '<div class="card pic">'+img+
       '<div class="cap"><span class="badge">En el sorteo</span><b>'+esc(x.modelo)+'</b><div class="tiny">'+esc(sub)+'</div>'+(x.descripcion?'<p class="desc">'+esc(x.descripcion)+'</p>':'')+
       '<div class="lk">'+likeBtn(x.id,x.likes,MIS.has(x.id))+'</div>'+
-      (UID&&UID===PR.user_id?'':'<p class="ask">¿Te gustó este modelo? <a href="https://wa.me/51970667052?text='+encodeURIComponent('Hola, vi el '+x.modelo+' en la comunidad y quiero pedirlo.')+'" target="_blank" rel="noopener">Pídelo por WhatsApp</a></p>')+
+      (DUENO?'':'<p class="ask">¿Te gustó este modelo? <a href="https://wa.me/51970667052?text='+encodeURIComponent('Hola, vi el '+x.modelo+' en la comunidad y quiero pedirlo.')+'" target="_blank" rel="noopener">Pídelo por WhatsApp</a></p>')+
       '</div></div>';
   }).join('');
   $('vacio').hidden=d.length>0;
@@ -362,11 +366,12 @@ async function init(){
   try{
     if(!n){throw 'sin-apodo'}
     var ses=(await SB.auth.getSession()).data.session;
-    UID=ses&&ses.user.email?ses.user.id:null;
+    UID=ses&&ses.user?ses.user.id:null;
     var p=await SB.from('perfiles').select('user_id,apodo,avatar,bio,instagram').eq('apodo',n).maybeSingle();
     if(p.error)throw p.error;
     if(!p.data){throw 'sin-perfil'}
     PR=p.data;
+    DUENO=!!(UID&&UID===PR.user_id);
     var f=await SB.from('fotos').select('id,modelo,marca,escala,descripcion,ruta,creada,likes,tipo,comentario').eq('user_id',PR.user_id).eq('estado','aprobada').order('creada',{ascending:false});
     if(f.error)throw f.error;
     var d=f.data||[];
@@ -383,7 +388,7 @@ async function init(){
       if(navigator.share){navigator.share({title:'@'+PR.apodo,url:u}).catch(function(){})}
       else if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){b.textContent='Enlace copiado';setTimeout(function(){b.textContent='Compartir perfil'},2000)})}
     });
-    if(UID&&UID===PR.user_id){activarConfig();activarNuevo();cargarPart()}
+    if(DUENO){activarConfig();activarNuevo();cargarPart()}
   }catch(err){
     console.error(err);
     $('carga').hidden=true;
