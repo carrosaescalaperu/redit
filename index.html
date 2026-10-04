@@ -62,6 +62,7 @@ section{padding:3.5rem 0}
 .bar{width:22px;height:3px;background:var(--red);border-radius:2px;margin-bottom:.75rem}
 
 /* hero */
+#galeria{padding-top:2.5rem}
 .hero{padding:4.5rem 0 2rem}
 .stats{display:flex;gap:2.5rem;margin-top:2.5rem;flex-wrap:wrap}
 .stats div{min-width:110px}
@@ -81,7 +82,7 @@ section{padding:3.5rem 0}
 .item .ph{position:relative}
 .item .badge{position:absolute;top:.6rem;left:.6rem}
 .item .meta{padding:.75rem .25rem .25rem}
-.item b{font-weight:600}
+.item b{font-weight:600;display:block;line-height:1.3}
 
 /* perfil */
 .prof{display:grid;grid-template-columns:260px 1fr;gap:2rem}
@@ -111,7 +112,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 
 @media(max-width:900px){
   .menu{display:none}
-  .hero{padding:1.5rem 0 1.5rem}
+  #galeria{padding-top:1.5rem}
   .c4,.c5,.c7,.c8{grid-column:span 12}
   .gal{grid-template-columns:repeat(2,1fr)}
   .prize,.prof,.mod{grid-template-columns:1fr}
@@ -160,38 +161,25 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 </head>
 <body>
 <nav class="nav" aria-label="Principal">
-  <a class="logo" href="#inicio"><img src="logo.png" alt="Carros Escala Perú"></a>
+  <a class="logo" href="index.html"><img src="logo.png" alt="Carros Escala Perú"></a>
   <div class="menu"><a href="#galeria">Galería</a><a href="#concurso">Sorteo</a><a href="#reglas">Cómo participar</a></div>
   <a class="btn sm" id="btn-sesion" href="subir.html">Ingresar</a>
 </nav>
 
-<header class="hero" id="inicio">
-  <div class="wrap">
-    <div class="eyebrow">Comunidad</div>
-    <h1 class="hero-title">Las colecciones<br>de quienes sí saben</h1>
-    <p class="lead">Mira las colecciones reales de nuestros clientes, sube la tuya y entra al concurso del mes.</p>
-    <div class="stats">
-      <div><div class="num" id="n-col">0</div><div class="tiny">coleccionistas</div></div>
-      <div><div class="num" id="n-fot">0</div><div class="tiny">fotos publicadas</div></div>
-    </div>
-  </div>
-</header>
-
 
 <section id="galeria">
   <div class="wrap">
-    <div class="bar"></div>
-    <h2 class="h2">Galería de colecciones</h2>
+    <h1 class="hero-title">Galería de colecciones</h1>
     <p class="sub">Busca un modelo y mira quién lo tiene. Toca una foto para abrir el perfil del coleccionista.</p>
     <div class="chips" role="group" aria-label="Filtros y búsqueda">
-      <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar modelo, ej. Toyota" aria-label="Buscar modelo"></label>
+      <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar modelo o coleccionista" aria-label="Buscar modelo"></label>
       <button class="chip" data-f="todas" aria-pressed="true">Todas</button>
       <button class="chip" data-f="reciente" aria-pressed="false">Recientes</button>
       <button class="chip" data-f="destacada" aria-pressed="false">Destacadas</button>
       <button class="chip" data-f="f1" aria-pressed="false">F1</button>
     </div>
     <div class="gal" id="gal"></div>
-    <p class="sub" id="empty" hidden style="margin-top:1rem">Nadie tiene ese modelo todavía. Prueba con otra marca o nombre.</p>
+    <p class="sub" id="empty" hidden style="margin-top:1rem">No encontramos ese modelo. Prueba con otra marca o nombre.</p>
   </div>
 </section>
 
@@ -238,7 +226,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script>
-var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',C={};
+var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',P=[];
 function norm(t){return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
 async function cargar(){
   var f=await SB.from('fotos').select('user_id,modelo,marca,escala,ruta,creada,destacada').eq('estado','aprobada').order('creada',{ascending:false});
@@ -246,27 +234,25 @@ async function cargar(){
   d.forEach(function(x){if(ids.indexOf(x.user_id)<0)ids.push(x.user_id)});
   var p=ids.length?await SB.from('perfiles').select('user_id,apodo').in('user_id',ids):{data:[]};
   var ap={};(p.data||[]).forEach(function(x){ap[x.user_id]=x.apodo});
-  C={};
+  var us={};P=[];
   d.forEach(function(x){
     var n=ap[x.user_id];if(!n)return;
-    var c=C[n]=C[n]||{cover:x.ruta,destacada:false,reciente:false,f1:false,m:[]};
-    c.m.push([x.modelo,[x.marca,x.escala].filter(Boolean).join(' · ')]);
-    if(x.destacada)c.destacada=true;
-    if(x.marca==='F1')c.f1=true;
-    if(Date.now()-new Date(x.creada)<30*864e5)c.reciente=true;
+    us[n]=1;
+    P.push({
+      n:n,modelo:x.modelo,ruta:x.ruta,destacada:!!x.destacada,
+      sub:[x.marca,x.escala].filter(Boolean).join(' · '),
+      tags:[x.destacada?'destacada':'',(Date.now()-new Date(x.creada)<30*864e5)?'reciente':'',x.marca==='F1'?'f1':''].join(' ')
+    });
   });
-  document.getElementById('n-col').textContent=Object.keys(C).length;
-  document.getElementById('n-fot').textContent=d.length;
   pintar();
 }
 function pintar(){
   gal.innerHTML='';
-  Object.keys(C).forEach(function(n){
-    var c=C[n],b=document.createElement('button');
-    b.className='item';b.type='button';b.dataset.n=n;
-    b.dataset.tags=[c.destacada?'destacada':'',c.reciente?'reciente':'',c.f1?'f1':''].join(' ');
-    b.innerHTML='<div class="ph"><img src="'+esc(FOTO_URL(c.cover))+'" alt="Colección de @'+esc(n)+'" loading="lazy">'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</div><div class="meta"><b>@'+esc(n)+'</b><div class="tiny sl">'+c.m.length+' modelos</div></div>';
-    b.addEventListener('click',function(){location.href='perfil.html?u='+encodeURIComponent(n)});
+  P.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='item';b.type='button';b.dataset.tags=c.tags;b.dataset.q=norm(c.modelo+' '+c.n);
+    b.innerHTML='<div class="ph"><img src="'+esc(FOTO_URL(c.ruta))+'" alt="'+esc(c.modelo)+'" loading="lazy">'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</div><div class="meta"><b>'+esc(c.modelo)+'</b><div class="tiny sl">@'+esc(c.n)+(c.sub?' · '+esc(c.sub):'')+'</div></div>';
+    b.addEventListener('click',function(){location.href='perfil.html?u='+encodeURIComponent(c.n)});
     gal.appendChild(b);
   });
   aplicar();
@@ -274,12 +260,10 @@ function pintar(){
 function aplicar(){
   var t=norm(q.value.trim()),vis=0;
   gal.querySelectorAll('.item').forEach(function(i){
-    var c=C[i.dataset.n],hits=t?c.m.filter(function(x){return norm(x[0]).indexOf(t)>-1}):[];
     var okF=filtro==='todas'||i.dataset.tags.split(' ').indexOf(filtro)>-1;
-    var okQ=!t||hits.length>0;
+    var okQ=!t||i.dataset.q.indexOf(t)>-1;
     i.style.display=(okF&&okQ)?'':'none';
     if(okF&&okQ)vis++;
-    i.querySelector('.sl').innerHTML=t?'<span class="match">'+hits.map(function(x){return esc(x[0])}).join(', ')+'</span>':c.m.length+' modelos';
   });
   empty.hidden=vis>0;
 }
