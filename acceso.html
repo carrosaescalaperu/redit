@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ingresar · Carros Escala Perú</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;1,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+.logo{display:flex;align-items:center}
+.logo img{display:block;height:40px;width:auto}
+.box{max-width:480px;margin:0 auto}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid var(--line);border-radius:var(--r-pill);margin-bottom:1.5rem}
+.tab{font:600 .875rem var(--fb);color:var(--tx2);background:transparent;border:0;border-radius:var(--r-pill);padding:.65rem 1rem;cursor:pointer;transition:background var(--t-smooth),color var(--t-smooth)}
+.tab:hover{color:var(--tx)}
+.tab[aria-selected="true"]{background:rgba(255,255,255,.1);color:var(--tx)}
+.tab:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.full{width:100%}
+.link{text-decoration:underline;color:var(--tx)}
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="Principal">
+  <a class="logo" href="index.html"><img src="logo.png" alt="Carros Escala Perú"></a>
+  <a class="back" href="index.html">← Volver</a>
+</nav>
+
+<main>
+  <div class="wrap">
+    <div class="box">
+      <h1 class="h2" id="titulo">Inicia sesión</h1>
+      <p class="sub" id="sub">Entra con tu apodo y contraseña.</p>
+
+      <div class="tabs" role="tablist" aria-label="Acceso">
+        <button class="tab" role="tab" type="button" id="t-entrar" aria-selected="true">Iniciar sesión</button>
+        <button class="tab" role="tab" type="button" id="t-crear" aria-selected="false">Crear cuenta</button>
+      </div>
+
+      <div class="card">
+        <form id="f" class="stack" novalidate>
+          <label class="lbl" for="apodo">Apodo</label>
+          <input id="apodo" type="text" maxlength="20" autocomplete="username" placeholder="mi_apodo">
+          <label class="lbl" for="pass">Contraseña</label>
+          <input id="pass" type="password" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+          <div id="rep" class="stack" hidden>
+            <label class="lbl" for="pass2">Repite la contraseña</label>
+            <input id="pass2" type="password" autocomplete="new-password">
+          </div>
+          <button class="btn full" type="submit" id="ok">Iniciar sesión</button>
+          <p class="tiny" id="m" style="margin:0"></p>
+          <p class="tiny" id="ayuda" style="margin:0"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+var DOM='@carrosescala.pe',modo='entrar';
+var WA='https://wa.me/51970667052?text=Hola%2C%20olvid%C3%A9%20mi%20contrase%C3%B1a%20de%20la%20comunidad.';
+
+function msg(t,err){var e=$('m');e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
+function setModo(m){
+  modo=m;
+  var c=m==='crear';
+  $('t-entrar').setAttribute('aria-selected',c?'false':'true');
+  $('t-crear').setAttribute('aria-selected',c?'true':'false');
+  $('rep').hidden=!c;
+  $('titulo').textContent=c?'Crea tu cuenta':'Inicia sesión';
+  $('sub').textContent=c?'Elige un apodo y una contraseña. Es gratis y toma un minuto.':'Entra con tu apodo y contraseña.';
+  $('ok').textContent=c?'Crear cuenta':'Iniciar sesión';
+  $('pass').autocomplete=c?'new-password':'current-password';
+  $('ayuda').innerHTML=c?'Guarda bien tu apodo y contraseña: no se pueden recuperar por correo.':'¿Olvidaste tu contraseña? <a class="link" href="'+WA+'" target="_blank" rel="noopener">Escríbenos por WhatsApp</a>.';
+  msg('');
+  history.replaceState(null,'','#'+m);
+}
+$('t-entrar').addEventListener('click',function(){setModo('entrar')});
+$('t-crear').addEventListener('click',function(){setModo('crear')});
+
+$('f').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var crear=modo==='crear',a=$('apodo').value.trim().toLowerCase(),pw=$('pass').value;
+  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('Apodo inválido: 3 a 20 letras, números o _.',true);return}
+  if(pw.length<6){msg('La contraseña necesita 6 caracteres o más.',true);return}
+  if(crear&&pw!==$('pass2').value){msg('Las contraseñas no coinciden.',true);return}
+  var b=$('ok');b.disabled=true;msg('Un momento…');
+  var cred={email:a+DOM,password:pw};
+  var r=crear?await SB.auth.signUp(cred):await SB.auth.signInWithPassword(cred);
+  if(r.error){
+    var t=crear?(/registered|already/i.test(r.error.message)?'Ese apodo ya existe. Elige otro o inicia sesión.':'Error: '+r.error.message):'Apodo o contraseña incorrectos.';
+    msg(t,true);b.disabled=false;return;
+  }
+  if(crear&&!r.data.session){msg('No se pudo iniciar la sesión. Intenta iniciar sesión con tu apodo.',true);b.disabled=false;return}
+  var uid=r.data.user.id;
+  var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
+  if(!p.data){await SB.from('perfiles').insert({user_id:uid,apodo:a})}
+  location.href='index.html';
+});
+
+(async function(){
+  var s=(await SB.auth.getSession()).data.session;
+  if(s&&s.user.email){location.replace('index.html');return}
+  setModo(location.hash==='#crear'?'crear':'entrar');
+})();
+</script>
+</body>
+</html>
