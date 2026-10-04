@@ -12,7 +12,7 @@ function likeBtn(id,n,on){
 }
 async function toggleLike(btn){
   var s=(await SB.auth.getSession()).data.session;
-  if(!s||!s.user.email){location.href='subir.html';return}
+  if(!s||!s.user.email){location.href='acceso.html';return}
   if(btn.dataset.busy)return;
   btn.dataset.busy='1';
   var id=btn.dataset.id,sp=btn.querySelector('span'),n=parseInt(sp.textContent,10)||0,on=btn.classList.contains('on');
