@@ -62,7 +62,12 @@ section{padding:3.5rem 0}
 .bar{width:22px;height:3px;background:var(--red);border-radius:2px;margin-bottom:.75rem}
 
 /* hero */
-#galeria{padding-top:2.5rem}
+#galeria{padding-top:2.5rem;padding-bottom:1.5rem}
+.hero-title span{color:var(--red)}
+.divider{display:flex;align-items:center;gap:1.5rem;max-width:1200px;margin:0 auto;padding:1.25rem 1.5rem}
+.divider i{flex:1;height:1px;background:var(--line)}
+.divider p{margin:0;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;letter-spacing:.06em;font-size:.8125rem;color:var(--tx2);text-align:center}
+.divider b{color:var(--red);font-weight:700}
 .hero{padding:4.5rem 0 2rem}
 .stats{display:flex;gap:2.5rem;margin-top:2.5rem;flex-wrap:wrap}
 .stats div{min-width:110px}
@@ -169,7 +174,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 
 <section id="galeria">
   <div class="wrap">
-    <h1 class="hero-title">Galería de colecciones</h1>
+    <h1 class="hero-title">Galería de <span>colecciones</span></h1>
     <p class="sub">Busca un modelo y mira quién lo tiene. Toca una foto para abrir el perfil del coleccionista.</p>
     <div class="chips" role="group" aria-label="Filtros y búsqueda">
       <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Buscar modelo o coleccionista" aria-label="Buscar modelo"></label>
@@ -184,6 +189,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 </section>
 
 
+<div class="divider"><i></i><p>No es para cualquiera. <b>Es para el que sabe.</b></p><i></i></div>
 <section id="concurso" style="padding-top:2rem">
   <div class="wrap">
     <div class="card">
