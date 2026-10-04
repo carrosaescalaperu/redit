@@ -274,7 +274,7 @@ async function cargar(){
   var ses=(await SB.auth.getSession()).data.session;
   var uid=ses&&ses.user.email?ses.user.id:null;
   var r=await Promise.all([
-    SB.from('fotos').select('id,user_id,modelo,marca,escala,ruta,creada,destacada,likes').eq('estado','aprobada').order('creada',{ascending:false}),
+    SB.from('fotos').select('id,user_id,modelo,marca,escala,ruta,creada,destacada,likes').eq('estado','aprobada').eq('tipo','sorteo').order('creada',{ascending:false}),
     SB.from('perfiles').select('user_id,apodo'),
     uid?SB.from('likes').select('foto_id').eq('user_id',uid):Promise.resolve({data:[]})
   ]);
