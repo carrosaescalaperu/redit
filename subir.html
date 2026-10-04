@@ -50,18 +50,15 @@ main{padding-top:2rem}
     <p class="sub">Para participar, ingresa el código de la tarjeta que viene con tu pedido y sube una foto en la que se vea tu compra.</p>
 
 
-    <!-- 1. correo -->
-    <section id="s-login" class="card" hidden>
-      <form id="f-login" class="stack">
-        <label class="lbl" for="apodo">Apodo</label>
-        <input id="apodo" type="text" required maxlength="20" autocomplete="username" placeholder="mi_apodo">
-        <label class="lbl" for="pass">Contraseña</label>
-        <input id="pass" type="password" required minlength="6" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
-        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
-          <button class="btn" type="submit">Entrar</button>
-          <button class="btn-2" type="button" id="b-crear">Crear cuenta</button>
-        </div>
-        <p class="tiny" id="m-login" style="margin:0">Primera vez: elige apodo y contraseña y pulsa Crear cuenta. Guárdalas: no hay recuperación por correo.</p>
+    <p class="tiny" id="s-carga">Un momento…</p>
+
+    <section id="s-tel" class="card" hidden>
+      <form id="f-tel" class="stack" novalidate>
+        <label class="lbl" for="tel">Tu celular (WhatsApp)</label>
+        <input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="9XX XXX XXX">
+        <p class="tiny" style="margin:0">Solo lo usamos para contactarte si ganas el sorteo. No se muestra en tu perfil.</p>
+        <div><button class="btn" type="submit">Guardar y continuar</button></div>
+        <p class="tiny" id="m-tel" style="margin:0"></p>
       </form>
     </section>
 
@@ -79,7 +76,7 @@ main{padding-top:2rem}
         <div id="paso-foto" class="stack" hidden>
           <div class="model"><div class="tiny">Tu modelo</div><b id="modelo"></b><div class="tiny" id="detalle"></div></div>
           <label class="lbl" for="foto">Tu foto</label>
-          <input id="foto" type="file" accept="image/*">
+          <input id="foto" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif">
           <img id="prev" class="prev" alt="Vista previa" hidden>
           <p class="tiny" style="margin:0">Al participar, aceptas que tus imágenes puedan mostrarse en nuestra web y redes sociales con fines comerciales. Más información en nuestra <a href="privacidad.html" style="text-decoration:underline">política de privacidad</a>.</p>
           <div><button class="btn" type="button" id="b-subir">Enviar foto</button></div>
@@ -100,42 +97,37 @@ main{padding-top:2rem}
 <script>
 var $=function(i){return document.getElementById(i)};
 var uid=null,codigo=null;
-function ver(id){['s-login','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
+var Q=new URLSearchParams(location.search),COD=(Q.get('c')||'').replace(/[^A-Za-z0-9-]/g,'').slice(0,20);
+function ver(id){['s-carga','s-tel','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
 function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
 
-var DOM='@carrosescala.pe';
 async function init(){
   var s=(await SB.auth.getSession()).data.session;
   if(s&&!s.user.email){await SB.auth.signOut();s=null}
-  if(!s){ver('s-login');return}
+  if(!s){location.replace('acceso.html?volver=subir.html'+(COD?'&c='+encodeURIComponent(COD):'')+'#crear');return}
   uid=s.user.id;
   var a=s.user.email.split('@')[0];
   var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
   if(p.data){a=p.data.apodo}
   else{
     var ins=await SB.from('perfiles').insert({user_id:uid,apodo:a});
-    if(ins.error){ver('s-login');msg('m-login','No se pudo crear tu perfil.',true);return}
+    if(ins.error){$('s-carga').textContent='No se pudo cargar tu perfil. Recarga la página.';return}
   }
   $('quien').textContent=a;
   $('perfil').href='perfil.html?u='+encodeURIComponent(a);
+  if(!(await tieneTel(uid))){ver('s-tel');return}
   ver('s-subir');misFotos();
+  if(COD&&!$('codigo').value){$('codigo').value=COD;$('b-codigo').click();COD=''}
 }
-async function entrar(crear){
-  var a=$('apodo').value.trim().toLowerCase(),pw=$('pass').value;
-  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('m-login','Apodo inválido: 3–20 letras, números o _.',true);return}
-  if(pw.length<6){msg('m-login','La contraseña necesita 6 caracteres o más.',true);return}
-  msg('m-login','Un momento…');
-  var cred={email:a+DOM,password:pw};
-  var r=crear?await SB.auth.signUp(cred):await SB.auth.signInWithPassword(cred);
-  if(r.error){
-    var t=crear?(/registered|already/i.test(r.error.message)?'Ese apodo ya existe. Elige otro o pulsa Entrar.':'Error: '+r.error.message):'Apodo o contraseña incorrectos.';
-    msg('m-login',t,true);return;
-  }
-  if(crear&&!r.data.session){msg('m-login','Falta desactivar "Confirm email" en Supabase.',true);return}
+
+$('f-tel').addEventListener('submit',async function(e){
+  e.preventDefault();
+  var t=normTel($('tel').value);
+  if(!t){msg('m-tel','Escribe un celular peruano válido: 9 dígitos y empieza con 9.',true);return}
+  var r=await SB.from('contactos').upsert({user_id:uid,telefono:t});
+  if(r.error){console.error(r.error);msg('m-tel','No se pudo guardar. Intenta de nuevo.',true);return}
   init();
-}
-$('f-login').addEventListener('submit',function(e){e.preventDefault();entrar(false)});
-$('b-crear').addEventListener('click',function(){entrar(true)});
+});
 
 $('codigo').addEventListener('input',function(){codigo=null;$('paso-foto').hidden=true;msg('m-codigo','')});
 $('b-codigo').addEventListener('click',async function(){
@@ -172,6 +164,7 @@ $('b-subir').addEventListener('click',async function(){
   var b=this,f=$('foto').files[0];
   if(!codigo){msg('m-subir','Verifica tu código primero.',true);return}
   if(!f){msg('m-subir','Elige una foto.',true);return}
+  if(f.size>40*1024*1024){msg('m-subir','La foto pesa demasiado. Usa una de menos de 40 MB.',true);return}
   b.disabled=true;msg('m-subir','Subiendo…');
   try{
     var src=f;
@@ -187,12 +180,12 @@ $('b-subir').addEventListener('click',async function(){
     msg('m-subir','Foto enviada. Queda en revisión.');
     $('codigo').value='';codigo=null;$('foto').value='';$('prev').hidden=true;$('paso-foto').hidden=true;
     misFotos();
-  }catch(err){console.error(err);msg('m-subir','Error: '+(err.message||err),true)}
+  }catch(err){console.error(err);msg('m-subir',(err&&err.message&&!(err instanceof Event))?'Error: '+err.message:'No pudimos leer esa imagen. Usa una foto JPG, PNG o HEIC (los archivos RAW o DNG no se pueden subir).',true)}
   b.disabled=false;
 });
 
 async function misFotos(){
-  var r=await SB.from('fotos').select('modelo,estado').eq('user_id',uid).order('creada',{ascending:false});
+  var r=await SB.from('fotos').select('modelo,estado').eq('user_id',uid).eq('tipo','sorteo').order('creada',{ascending:false});
   var d=r.data||[];
   $('mis').innerHTML=d.length?d.map(function(f){
     return '<li><span>'+esc(f.modelo)+'</span><span>'+(f.estado==='aprobada'?'Publicada':'En revisión')+'</span></li>';
@@ -200,7 +193,7 @@ async function misFotos(){
 }
 
 document.querySelector('.out').addEventListener('click',async function(e){
-  e.preventDefault();await SB.auth.signOut();init();
+  e.preventDefault();await SB.auth.signOut();location.href='index.html';
 });
 init();
 </script>
