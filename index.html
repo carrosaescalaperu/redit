@@ -87,6 +87,18 @@ section{padding:3.5rem 0}
 .item .ph{position:relative}
 .item .badge{position:absolute;top:.6rem;left:.6rem}
 .item .meta{padding:.75rem .25rem .25rem}
+.item .row{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem}
+.item .tt{min-width:0;display:block}
+.item a.ph{display:flex}
+.like{display:inline-flex;align-items:center;gap:.4rem;background:transparent;border:1px solid var(--line);border-radius:var(--r-pill);padding:.3rem .7rem;color:var(--tx2);font:600 .8125rem var(--fb);cursor:pointer;flex:none;transition:background var(--t-smooth),border-color var(--t-smooth),color var(--t-smooth)}
+.like:hover{background:rgba(255,255,255,.06);border-color:var(--hi);color:var(--tx)}
+.like.on{color:var(--red);border-color:rgba(225,6,0,.5)}
+.like.on svg{fill:var(--red)}
+.sk{pointer-events:none}
+.sk .ph{animation:pulso 1.2s ease-in-out infinite}
+.sk .l{height:12px;border-radius:6px;background:var(--line);margin:.45rem 0;width:75%}
+.sk .l.s{width:45%}
+@keyframes pulso{0%,100%{opacity:1}50%{opacity:.55}}
 .item b{font-weight:600;display:block;line-height:1.3}
 
 /* perfil */
@@ -163,6 +175,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
   .card.mod .ph,.prize .ph{max-width:none;height:auto;aspect-ratio:4/3;min-height:0}
 }
 </style>
+<link rel="preconnect" href="https://uktfnntgmjhhpaonsvch.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 </head>
 <body>
 <nav class="nav" aria-label="Principal">
@@ -232,33 +246,54 @@ footer .wrap{display:flex;justify-content:space-between;gap:1.5rem;flex-wrap:wra
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script>
-var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',P=[];
+var gal=document.getElementById('gal'),q=document.getElementById('q'),empty=document.getElementById('empty'),filtro='todas',P=[],CK='cep_gal_v2',ultimo='',MIS=new Set();
 function norm(t){return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
-async function cargar(){
-  var f=await SB.from('fotos').select('user_id,modelo,marca,escala,ruta,creada,destacada').eq('estado','aprobada').order('creada',{ascending:false});
-  var d=f.data||[],ids=[];
-  d.forEach(function(x){if(ids.indexOf(x.user_id)<0)ids.push(x.user_id)});
-  var p=ids.length?await SB.from('perfiles').select('user_id,apodo').in('user_id',ids):{data:[]};
-  var ap={};(p.data||[]).forEach(function(x){ap[x.user_id]=x.apodo});
-  var us={};P=[];
+function esqueleto(){
+  var h='';
+  for(var k=0;k<4;k++){h+='<div class="item sk" aria-hidden="true"><div class="ph"></div><div class="meta"><div class="l"></div><div class="l s"></div></div></div>'}
+  gal.innerHTML=h;
+}
+function armar(d,ap){
+  P=[];
   d.forEach(function(x){
     var n=ap[x.user_id];if(!n)return;
-    us[n]=1;
     P.push({
-      n:n,modelo:x.modelo,ruta:x.ruta,destacada:!!x.destacada,
+      id:x.id,likes:x.likes||0,n:n,modelo:x.modelo,ruta:x.ruta,destacada:!!x.destacada,
       sub:[x.marca,x.escala].filter(Boolean).join(' · '),
       tags:[x.destacada?'destacada':'',(Date.now()-new Date(x.creada)<30*864e5)?'reciente':'',x.marca==='F1'?'f1':''].join(' ')
     });
   });
-  pintar();
+}
+async function cargar(){
+  var hayCache=false;
+  try{
+    var c=JSON.parse(localStorage.getItem(CK)||'null');
+    if(c&&c.d){armar(c.d,c.ap);pintar();ultimo=JSON.stringify(c)+'|';hayCache=true}
+  }catch(e){}
+  if(!hayCache)esqueleto();
+  var ses=(await SB.auth.getSession()).data.session;
+  var uid=ses&&ses.user.email?ses.user.id:null;
+  var r=await Promise.all([
+    SB.from('fotos').select('id,user_id,modelo,marca,escala,ruta,creada,destacada,likes').eq('estado','aprobada').order('creada',{ascending:false}),
+    SB.from('perfiles').select('user_id,apodo'),
+    uid?SB.from('likes').select('foto_id').eq('user_id',uid):Promise.resolve({data:[]})
+  ]);
+  if(r[0].error||r[1].error){if(!hayCache)gal.innerHTML='';return}
+  var ap={};(r[1].data||[]).forEach(function(x){ap[x.user_id]=x.apodo});
+  var ids=(r[2].data||[]).map(function(x){return x.foto_id});
+  var d=r[0].data||[],base=JSON.stringify({d:d,ap:ap}),clave=base+'|'+ids.slice().sort().join(',');
+  try{localStorage.setItem(CK,base)}catch(e){}
+  if(clave===ultimo)return;
+  ultimo=clave;MIS=new Set(ids);armar(d,ap);pintar();
 }
 function pintar(){
   gal.innerHTML='';
-  P.forEach(function(c){
-    var b=document.createElement('button');
-    b.className='item';b.type='button';b.dataset.tags=c.tags;b.dataset.q=norm(c.modelo+' '+c.n);
-    b.innerHTML='<div class="ph"><img src="'+esc(FOTO_URL(c.ruta))+'" alt="'+esc(c.modelo)+'" loading="lazy">'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</div><div class="meta"><b>'+esc(c.modelo)+'</b><div class="tiny sl">@'+esc(c.n)+(c.sub?' · '+esc(c.sub):'')+'</div></div>';
-    b.addEventListener('click',function(){location.href='perfil.html?u='+encodeURIComponent(c.n)});
+  P.forEach(function(c,k){
+    var url='perfil.html?u='+encodeURIComponent(c.n);
+    var b=document.createElement('div');
+    b.className='item';b.dataset.tags=c.tags;b.dataset.q=norm(c.modelo+' '+c.n);
+    b.innerHTML='<a class="ph" href="'+url+'" aria-label="Ver perfil de @'+esc(c.n)+'"><img src="'+esc(FOTO_URL(c.ruta))+'" alt="'+esc(c.modelo)+'" decoding="async" '+(k<4?'fetchpriority="high"':'loading="lazy"')+'>'+(c.destacada?'<span class="badge">Destacada</span>':'')+'</a>'+
+      '<div class="meta"><div class="row"><a class="tt" href="'+url+'"><b>'+esc(c.modelo)+'</b><div class="tiny sl">@'+esc(c.n)+(c.sub?' · '+esc(c.sub):'')+'</div></a>'+likeBtn(c.id,c.likes,MIS.has(c.id))+'</div></div>';
     gal.appendChild(b);
   });
   aplicar();
@@ -271,7 +306,7 @@ function aplicar(){
     i.style.display=(okF&&okQ)?'':'none';
     if(okF&&okQ)vis++;
   });
-  empty.hidden=vis>0;
+  empty.hidden=vis>0||!P.length;
 }
 q.addEventListener('input',aplicar);
 document.querySelectorAll('.chip').forEach(function(ch){
