@@ -27,8 +27,14 @@
 .steps .card{padding:1.4rem}
 .steps h3{margin:.6rem 0 .4rem;font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1rem}
 .steps p{margin:0}
+.pe{display:inline-block;border:1px solid var(--line);border-radius:var(--r-pill);padding:3px 12px;font-size:.78rem;color:var(--tx);font-weight:600}
+.premios{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.premios .it{padding:0;overflow:hidden}
+.premios .ph{aspect-ratio:1/1}
+.premios .b{padding:.9rem 1.1rem 1.1rem}
+.premios b{font-family:var(--fh);font-weight:700;font-style:italic;text-transform:uppercase;font-size:1rem}
 footer{border-top:1px solid var(--line);padding:2rem 0 3rem;color:var(--tx2);font-size:.875rem;margin-top:3rem}
-@media(max-width:800px){.prize{grid-template-columns:1fr}.prize .ph{height:auto;aspect-ratio:4/3;min-height:0}.prize>div:last-child{padding:1.5rem}.steps{grid-template-columns:1fr}}
+@media(max-width:800px){.prize{grid-template-columns:1fr}.prize .ph{height:auto;aspect-ratio:4/3;min-height:0}.prize>div:last-child{padding:1.5rem}.steps{grid-template-columns:1fr}.premios{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -39,22 +45,32 @@ footer{border-top:1px solid var(--line);padding:2rem 0 3rem;color:var(--tx2);fon
 
 <main>
   <div class="wrap wide doc">
-    <div class="eyebrow">Sorteo del mes</div>
-    <h1 class="h2">Premio, modalidad y bases</h1>
+    <div class="eyebrow">Primer sorteo</div>
+    <h1 class="h2">El primer sorteo de Carros Escala Perú</h1>
+    <p style="max-width:62ch;margin:.5rem 0 0">Es la primera vez que sorteamos un auto a escala entre nuestros clientes. Si ya compraste con nosotros, estás a una foto de participar.</p>
 
     <div class="card" style="margin-top:1.5rem">
       <div class="prize">
         <div class="ph"><img src="premio.jpg" alt="Premio del sorteo del mes"></div>
         <div>
-          <span class="badge">El premio</span>
-          <h2 style="margin:.9rem 0 .5rem;font-size:1.6rem">Un coche a escala de colección</h2>
-          <p style="margin:0 0 1.25rem">Es el que ves en la foto, totalmente gratis para la persona ganadora. Se sortea todos los meses entre nuestros clientes.</p>
+          <span class="badge">Sorteo del mes</span>
+          <h2 style="margin:.9rem 0 .5rem;font-size:1.6rem">Tres modelos en juego, tú eliges uno</h2>
+          <p style="margin:0 0 .5rem">Quien gane se lleva un auto a escala sin pagar nada.</p>
+          <p style="margin:0 0 1.25rem"><span class="pe">Solo para Perú</span></p>
           <div class="days" data-cuenta role="timer">—</div>
           <div class="tiny" data-cierre>para el cierre</div>
           <div style="margin-top:1.25rem"><a class="btn" href="https://wa.me/51970667052?text=Hola%2C%20quiero%20hacer%20un%20pedido%20y%20participar%20en%20el%20sorteo%20del%20mes." target="_blank" rel="noopener">Comprar y participar</a></div>
         </div>
       </div>
     </div>
+
+    <h2>Los tres premios</h2>
+    <div class="premios">
+      <div class="card it"><div class="ph"><img src="premio.jpg" alt="Premio 1" onerror="this.remove()"></div><div class="b"><b>Premio 1</b></div></div>
+      <div class="card it"><div class="ph"><img src="premio-2.jpg" alt="Premio 2" onerror="this.remove()"></div><div class="b"><b>Premio 2</b></div></div>
+      <div class="card it"><div class="ph"><img src="premio-3.jpg" alt="Premio 3" onerror="this.remove()"></div><div class="b"><b>Premio 3</b></div></div>
+    </div>
+    <p style="margin-top:1rem">La persona ganadora elige uno de los tres. Si ya tiene alguno de ellos, puede elegir otro de los tres.</p>
 
     <h2>Cómo funciona</h2>
     <div class="steps">
@@ -68,12 +84,13 @@ footer{border-top:1px solid var(--line);padding:2rem 0 3rem;color:var(--tx2);fon
 
     <h2>Bases y condiciones</h2>
     <ol>
+      <li><strong>Solo en Perú.</strong> El sorteo es válido únicamente en el Perú: la persona ganadora debe residir en el país y el premio se entrega dentro del territorio peruano.</li>
       <li><strong>Quién puede participar.</strong> Clientes de Carros Escala Perú que hayan comprado un modelo con nosotros y tengan la tarjeta con el código de su pedido.</li>
       <li><strong>Cómo se participa.</strong> Registrando el código de la tarjeta y subiendo una foto de tu pedido en la comunidad. Cada código se puede usar una sola vez.</li>
       <li><strong>Participaciones.</strong> Cada compra registrada con su código cuenta como una participación en el sorteo del mes. Las publicaciones libres de tu perfil no suman participaciones.</li>
       <li><strong>Sobre las fotos.</strong> Deben mostrar tu pedido, sin personas ni datos personales visibles. Revisamos cada foto antes de publicarla y podemos rechazar las que no cumplan estas condiciones.</li>
       <li><strong>Elección de la persona ganadora.</strong> Se elige al azar entre todas las participaciones válidas del mes. El resultado se anuncia en nuestras redes sociales y nos comunicaremos con la persona ganadora por WhatsApp.</li>
-      <li><strong>Premio.</strong> Un coche a escala de colección, intransferible y no canjeable por dinero. Coordinaremos la entrega con la persona ganadora.</li>
+      <li><strong>Premio.</strong> Se sortean tres modelos a escala de colección. La persona ganadora elige uno; si ya tiene alguno de los tres, puede elegir otro de ellos. El premio es intransferible y no canjeable por dinero. Coordinaremos la entrega con la persona ganadora.</li>
       <li><strong>Uso de imágenes.</strong> Al participar aceptas que tus fotos se muestren en nuestra web y redes sociales con fines comerciales. Más información en nuestra <a href="privacidad.html">política de privacidad</a>.</li>
       <li><strong>Cambios.</strong> Carros Escala Perú puede actualizar estas bases. La versión vigente es la que se publica en esta página.</li>
     </ol>
