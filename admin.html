@@ -47,7 +47,7 @@
 <script src="supabase.js"></script>
 <script>
 var $=function(i){return document.getElementById(i)};
-var D={};
+var D={},TEL={};
 function ver(id){['s-login','s-no','s-panel'].forEach(function(s){$(s).hidden=s!==id})}
 
 async function init(){
@@ -76,7 +76,7 @@ function tarjeta(f,ap,pend){
     :'<button class="btn-2 sm" data-a="dest" data-id="'+f.id+'">'+(f.destacada?'Quitar destacada':'Destacar')+'</button><button class="btn-2 sm" data-a="del" data-id="'+f.id+'">Eliminar</button>';
   return '<div class="card it"><div class="ph"><img src="'+esc(FOTO_URL(f.ruta))+'" alt="'+esc(titulo)+'" loading="lazy"></div>'+
     '<div class="b"><b>'+esc(titulo)+'</b><div class="tiny">'+esc(sub)+'</div>'+
-    '<div class="tiny">@'+esc(ap[f.user_id]||'sin apodo')+esc(cod)+'</div>'+
+    '<div class="tiny">@'+esc(ap[f.user_id]||'sin apodo')+esc(cod)+'</div>'+(TEL[f.user_id]?'<div class="tiny"><a href="https://wa.me/'+esc(TEL[f.user_id].replace('+',''))+'" target="_blank" rel="noopener" style="text-decoration:underline">'+esc(TEL[f.user_id])+'</a></div>':'')+
     '<div class="acts">'+acts+'</div></div></div>';
 }
 
@@ -86,6 +86,8 @@ async function cargar(){
   var ids=[];f.forEach(function(x){if(ids.indexOf(x.user_id)<0)ids.push(x.user_id)});
   var ap={};
   if(ids.length){((await SB.from('perfiles').select('user_id,apodo').in('user_id',ids)).data||[]).forEach(function(p){ap[p.user_id]=p.apodo})}
+  TEL={};
+  if(ids.length){((await SB.from('contactos').select('user_id,telefono').in('user_id',ids)).data||[]).forEach(function(c){TEL[c.user_id]=c.telefono})}
   var p=f.filter(function(x){return x.estado==='pendiente'}),a=f.filter(function(x){return x.estado==='aprobada'});
   $('pend').innerHTML=p.length?p.map(function(x){return tarjeta(x,ap,true)}).join(''):'<p class="tiny">Sin fotos pendientes.</p>';
   $('apro').innerHTML=a.length?a.map(function(x){return tarjeta(x,ap,false)}).join(''):'<p class="tiny">Aún no hay fotos publicadas.</p>';
@@ -100,7 +102,11 @@ document.addEventListener('click',async function(e){
   else if(b.dataset.a==='dest'){await SB.from('fotos').update({destacada:!f.destacada}).eq('id',f.id)}
   else if(b.dataset.a==='del'){
     if(!confirm('¿Eliminar esta foto? El código quedará libre para volver a usarse.')){b.disabled=false;return}
-    await SB.from('fotos').delete().eq('id',f.id);
+    var d=await SB.from('fotos').delete().eq('id',f.id).select('id');
+    if(d.error||!d.data||!d.data.length){
+      alert('No se pudo eliminar: '+(d.error?d.error.message:'la base de datos no lo permitió (permisos).'));
+      b.disabled=false;cargar();return;
+    }
     await SB.storage.from('fotos').remove([f.ruta]);
   }
   cargar();
