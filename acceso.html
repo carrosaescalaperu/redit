@@ -80,7 +80,7 @@ var WA='https://wa.me/51970667052?text=Hola%2C%20olvid%C3%A9%20mi%20contrase%C3%
 var Q=new URLSearchParams(location.search);
 var VOLVER=Q.get('volver')==='subir.html'?'subir.html':'index.html';
 var COD=(Q.get('c')||'').replace(/[^A-Za-z0-9-]/g,'').slice(0,20);
-var DEST=VOLVER==='subir.html'?'subir.html'+(COD?'?c='+encodeURIComponent(COD):''):'index.html';
+var DEST=VOLVER==='subir.html'?'subir.html'+(COD?'?c='+encodeURIComponent(COD):'')+'#paso-2':'index.html';
 
 function ir(){location.href=DEST}
 function msg(t,err,id){var e=$(id||'m');e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
