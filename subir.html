@@ -18,14 +18,16 @@
 .prize .ph{height:100%;aspect-ratio:auto;min-height:220px}
 .prize>div:last-child{padding:2rem}
 @media(max-width:700px){.prize{grid-template-columns:1fr}.prize .ph{height:auto;aspect-ratio:4/3;min-height:0}.prize>div:last-child{padding:1.5rem}}
-main{padding-top:2rem}
-.pasos{list-style:none;margin:1rem 0 0;padding:0;display:grid;grid-template-columns:1fr;gap:1rem}
-.paso{display:flex;gap:1rem;align-items:flex-start}
+main{padding-top:1rem}
+.pasos{display:grid;grid-template-columns:1fr;gap:1rem}
+.paso{display:flex;gap:1rem;align-items:flex-start;scroll-margin-top:1rem}
 .paso .n{flex:none;width:2.5rem;height:2.5rem;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.2rem}
+.paso .cuerpo{flex:1;min-width:0}
 .paso h3{margin:0 0 .25rem;font-family:var(--fh);font-weight:700;font-style:italic;font-size:1.1rem}
 .paso p{margin:0}
-.paso a{text-decoration:underline;color:inherit}
-@media(min-width:900px){.pasos{grid-template-columns:repeat(3,1fr)}}
+.paso .btn{margin-top:1rem}
+.paso a.out,.paso a.pf{text-decoration:underline;color:inherit}
+.codeimg{display:block;width:100%;height:auto;border-radius:12px;margin-top:1rem}
 </style>
 </head>
 <body>
@@ -50,38 +52,36 @@ main{padding-top:2rem}
       </div>
     </div>
   </div>
-
-  <ol class="pasos">
-    <li class="card paso">
-      <span class="n" aria-hidden="true">1</span>
-      <div>
-        <h3>Crea tu cuenta</h3>
-        <p class="tiny">Regístrate con tu correo y tu celular. Si ya tienes cuenta, solo inicia sesión.</p>
-      </div>
-    </li>
-    <li class="card paso">
-      <span class="n" aria-hidden="true">2</span>
-      <div>
-        <h3>Coloca el código de tu tarjeta</h3>
-        <p class="tiny">Ingresa el código de la tarjeta que viene con tu pedido en el apartado de abajo y sube una foto de tu compra.</p>
-      </div>
-    </li>
-    <li class="card paso">
-      <span class="n" aria-hidden="true">3</span>
-      <div>
-        <h3>Entras al sorteo</h3>
-        <p class="tiny">Cada código registrado cuenta como una participación. Mientras más compras, más posibilidades de ganar.</p>
-      </div>
-    </li>
-  </ol>
 </section>
 
 <main>
-  <div class="wrap">
-    <p class="sub">Para participar, ingresa el código de la tarjeta que viene con tu pedido y sube una foto en la que se vea tu compra.</p>
+  <div class="wrap pasos">
 
+    <!-- PASO 1 -->
+    <section class="card paso" id="paso-1">
+      <span class="n" id="n1" aria-hidden="true">1</span>
+      <div class="cuerpo">
+        <h3>Crea tu cuenta</h3>
+        <p class="tiny">Regístrate con un apodo, una contraseña y tu celular. Si ya tienes cuenta, solo inicia sesión.</p>
+        <div id="p1-out">
+          <a class="btn" id="b-acceso" href="acceso.html?volver=subir.html#crear">Crea tu cuenta o inicia sesión</a>
+        </div>
+        <p class="tiny" id="p1-in" style="margin-top:.75rem" hidden>Sesión iniciada como @<span id="quien"></span> · <a class="pf" id="perfil" href="#">Mi perfil</a> · <a href="#" class="out">Salir</a></p>
+      </div>
+    </section>
+
+    <!-- PASO 2: imagen + tarjeta del código -->
+    <section class="card paso" id="paso-2">
+      <span class="n" aria-hidden="true">2</span>
+      <div class="cuerpo">
+        <h3>Coloca el código de tu tarjeta</h3>
+        <p class="tiny">Busca el código en la tarjeta que viene con tu pedido y escríbelo abajo.</p>
+        <img class="codeimg" src="codigo-tarjeta.jpg" alt="Dónde está el código en la tarjeta que viene con tu pedido" loading="lazy">
+      </div>
+    </section>
 
     <p class="tiny" id="s-carga">Un momento…</p>
+    <p class="tiny" id="s-bloq" hidden>Primero crea tu cuenta o inicia sesión en el paso 1 para poder ingresar tu código.</p>
 
     <section id="s-tel" class="card" hidden>
       <form id="f-tel" class="stack" novalidate>
@@ -93,10 +93,8 @@ main{padding-top:2rem}
       </form>
     </section>
 
-    <!-- 3. código + foto -->
     <section id="s-subir" hidden>
       <div class="card stack">
-        <div class="tiny">Coleccionista: @<span id="quien"></span> · <a id="perfil" href="#" style="text-decoration:underline">Mi perfil</a> · <a href="#" class="out" style="text-decoration:underline">Salir</a></div>
         <label class="lbl" for="codigo">Código de tu pieza (viene con tu compra)</label>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap">
           <input id="codigo" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXXXX" style="flex:1 1 220px;width:auto;text-transform:uppercase">
@@ -114,10 +112,22 @@ main{padding-top:2rem}
           <p class="tiny" id="m-subir" style="margin:0"></p>
         </div>
       </div>
+    </section>
 
+    <!-- PASO 3 -->
+    <section class="card paso" id="paso-3">
+      <span class="n" aria-hidden="true">3</span>
+      <div class="cuerpo">
+        <h3>Ya estás en el concurso</h3>
+        <p class="tiny">Al enviar tu código y tu foto, participas en el sorteo del mes. Cada compra con tarjeta suma una oportunidad más.</p>
+      </div>
+    </section>
+
+    <div id="s-mis" hidden>
       <div class="h3">Mis fotos</div>
       <ul class="list" id="mis"></ul>
-    </section>
+    </div>
+
   </div>
 </main>
 
@@ -129,13 +139,19 @@ main{padding-top:2rem}
 var $=function(i){return document.getElementById(i)};
 var uid=null,codigo=null;
 var Q=new URLSearchParams(location.search),COD=(Q.get('c')||'').replace(/[^A-Za-z0-9-]/g,'').slice(0,20);
-function ver(id){['s-carga','s-tel','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
+function ver(id){['s-carga','s-bloq','s-tel','s-subir'].forEach(function(s){$(s).hidden=s!==id})}
 function msg(id,t,err){var e=$(id);e.textContent=t;e.style.color=err?'#fff':'';e.style.fontWeight=err?'600':''}
+function irPaso(){if(location.hash==='#paso-2'){$('paso-2').scrollIntoView()}}
 
 async function init(){
   var s=(await SB.auth.getSession()).data.session;
   if(s&&!s.user.email){await SB.auth.signOut();s=null}
-  if(!s){location.replace('acceso.html?volver=subir.html'+(COD?'&c='+encodeURIComponent(COD):'')+'#crear');return}
+  if(!s){
+    $('b-acceso').href='acceso.html?volver=subir.html'+(COD?'&c='+encodeURIComponent(COD):'')+'#crear';
+    $('p1-out').hidden=false;$('p1-in').hidden=true;$('n1').textContent='1';
+    $('s-mis').hidden=true;
+    ver('s-bloq');return;
+  }
   uid=s.user.id;
   var a=s.user.email.split('@')[0];
   var p=await SB.from('perfiles').select('apodo').eq('user_id',uid).maybeSingle();
@@ -146,8 +162,9 @@ async function init(){
   }
   $('quien').textContent=a;
   $('perfil').href='perfil.html?u='+encodeURIComponent(a);
-  if(!(await tieneTel(uid))){ver('s-tel');return}
-  ver('s-subir');misFotos();
+  $('p1-out').hidden=true;$('p1-in').hidden=false;$('n1').textContent='✓';
+  if(!(await tieneTel(uid))){ver('s-tel');irPaso();return}
+  ver('s-subir');$('s-mis').hidden=false;misFotos();irPaso();
   if(COD&&!$('codigo').value){$('codigo').value=COD;$('b-codigo').click();COD=''}
 }
 
