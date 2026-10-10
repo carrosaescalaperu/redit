@@ -116,7 +116,7 @@ async function continuar(uid){
 $('f').addEventListener('submit',async function(e){
   e.preventDefault();
   var crear=modo==='crear',a=$('apodo').value.trim().toLowerCase(),pw=$('pass').value,tel=null;
-  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('Apodo inválido: 3 a 20 letras, números o _.',true);return}
+  if(!/^[a-z0-9_]{3,20}$/.test(a)){msg('Apodo inválido: de 3 a 20 caracteres. Solo letras o números.',true);return}
   if(pw.length<6){msg('La contraseña necesita 6 caracteres o más.',true);return}
   if(crear){
     if(pw!==$('pass2').value){msg('Las contraseñas no coinciden.',true);return}
